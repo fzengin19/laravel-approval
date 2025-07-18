@@ -4,6 +4,7 @@ composer.lock
 
 # Frontend Assets
 /node_modules
+/.cursor
 
 # Logs
 npm-debug.log
@@ -26,7 +27,6 @@ _ide_helper_models.php
 
 # Misc
 phpunit.xml
-phpstan.neon
 testbench.yaml
 /docs
 /coverage
