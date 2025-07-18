@@ -815,8 +815,8 @@ trait HasApproval
     /**
      * Check if the model has a specific column.
      */
-    protected function hasColumn(string $column): bool
+    public function hasColumn(string $column): bool
     {
         return in_array($column, $this->getConnection()->getSchemaBuilder()->getColumnListing($this->getTable()));
     }
-} 
+}
