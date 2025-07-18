@@ -2,7 +2,7 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/fzengin19/laravel-approval.svg?style=flat-square)](https://packagist.org/packages/fzengin19/laravel-approval)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/fzengin19/laravel-approval/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/fzengin19/laravel-approval/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![Code Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen.svg?style=flat-square)](https://github.com/fzengin19/laravel-approval)
+[![Code Coverage](https://img.shields.io/badge/coverage-86%25-brightgreen.svg?style=flat-square)](https://github.com/fzengin19/laravel-approval)
 
 [![Total Downloads](https://img.shields.io/packagist/dt/fzengin19/laravel-approval.svg?style=flat-square)](https://packagist.org/packages/fzengin19/laravel-approval)
 [![PHP Version](https://img.shields.io/packagist/php-v/fzengin19/laravel-approval.svg?style=flat-square)](https://packagist.org/packages/fzengin19/laravel-approval)
