@@ -1,13 +1,21 @@
 {
     "name": "fzengin19/laravel-approval",
-    "description": "Laravel Approval Package for Eloquent Models",
+    "description": "A powerful, flexible, and performant approval system for Laravel applications. Supports both column-based and pivot table approaches with automatic model discovery, caching, rate limiting, comprehensive events, and 120+ tests.",
     "keywords": [
-        "fatihzengin",
         "laravel",
         "approval",
         "moderation",
         "workflow",
-        "eloquent"
+        "eloquent",
+        "cache",
+        "rate-limiting",
+        "events",
+        "facade",
+        "pivot-table",
+        "column-based",
+        "auto-discovery",
+        "statistics",
+        "validation"
     ],
     "homepage": "https://github.com/fzengin19/laravel-approval",
     "license": "MIT",
