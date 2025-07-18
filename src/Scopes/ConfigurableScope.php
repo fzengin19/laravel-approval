@@ -46,7 +46,9 @@ class ConfigurableScope implements Scope
     protected function applyColumnScope(Builder $builder, Model $model): void
     {
         $column = $this->config['column'];
-
+        if (!$model->hasColumn($column)) {
+            return; // Column yoksa scope uygulama
+        }
         if ($column === 'approved_at') {
             $builder->whereNotNull($column);
         } elseif ($column === 'is_approved') {
@@ -73,4 +75,4 @@ class ConfigurableScope implements Scope
     {
         return $this->config;
     }
-} 
+}
