@@ -1,0 +1,50 @@
+<?php
+
+use LaravelApproval\Traits\HasApprovals;
+use Workbench\App\Models\Post;
+
+// Test için Post modelini HasApprovals trait'i ile genişlet
+class CommandTestPost extends Post
+{
+    use HasApprovals;
+
+    protected $table = 'posts';
+}
+
+beforeEach(function () {
+    // Onaylı post oluştur
+    $approvedPost = CommandTestPost::create(['title' => 'Approved', 'content' => 'Content']);
+    $approvedPost->approve(1);
+
+    // Beklemede post oluştur
+    $pendingPost = CommandTestPost::create(['title' => 'Pending', 'content' => 'Content']);
+    $pendingPost->setPending(1);
+
+    // Reddedilmiş post oluştur
+    $rejectedPost = CommandTestPost::create(['title' => 'Rejected', 'content' => 'Content']);
+    $rejectedPost->reject(1, 'Invalid');
+});
+
+it('can show statistics for all models', function () {
+    config(['approvals.models' => [CommandTestPost::class => []]]);
+
+    $this->artisan('approval:status')
+        ->expectsOutputToContain('Approval Statistics for All Models')
+        ->assertExitCode(0);
+});
+
+it('can show statistics for specific model', function () {
+    $this->artisan('approval:status', ['--model' => CommandTestPost::class])
+        ->expectsOutputToContain('Approval Statistics for '.CommandTestPost::class)
+        ->expectsOutputToContain('Total')
+        ->expectsOutputToContain('Approved')
+        ->expectsOutputToContain('Pending')
+        ->expectsOutputToContain('Rejected')
+        ->assertExitCode(0);
+});
+
+it('shows error for non-existent model', function () {
+    $this->artisan('approval:status', ['--model' => 'NonExistentModel'])
+        ->expectsOutputToContain("Model class 'NonExistentModel' does not exist.")
+        ->assertExitCode(0);
+});

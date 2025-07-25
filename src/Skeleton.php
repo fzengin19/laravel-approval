@@ -1,5 +1,16 @@
 <?php
 
-namespace VendorName\Skeleton;
+namespace FatihZengin\LaravelApproval;
 
-class Skeleton {}
+class LaravelApproval
+{
+    public function __construct()
+    {
+        // Onay sistemi başlatılıyor
+    }
+
+    public function hello(): string
+    {
+        return 'Laravel Approval Package';
+    }
+}

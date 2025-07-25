@@ -1,0 +1,155 @@
+---
+alwaysApply: true
+---
+# TDD Workflow Rehberi - Laravel Approval Paketi
+
+Bu kural, Laravel Approval paketinin geliştirilmesi sırasında TDD (Test-Driven Development) yaklaşımının nasıl uygulanacağını açıklar.
+
+## Temel TDD Prensipleri
+
+### 1. Red-Green-Refactor Döngüsü
+- **Red**: Önce test yaz, test başarısız olsun
+- **Green**: Testi geçecek minimum kodu yaz
+- **Refactor**: Kodu temizle ve optimize et
+
+### 2. Adım Adım İlerleme
+- Her seferinde sadece **bir** özellik ekle
+- Her özellik için önce test yaz
+- Test geçene kadar kod yazma
+- Test geçtikten sonra refactor yap
+
+## Geliştirme Süreci
+
+### Mevcut Durum Kontrolü
+Her yeni adıma başlamadan önce:
+1. Hangi kilometre taşında olduğumuzu kontrol et
+2. Hangi adımın sırada olduğunu belirle
+3. Önceki adımların tamamlandığını doğrula
+
+### Test Yazma Kuralları
+- Her public metot için test yaz
+- Edge case'leri mutlaka test et
+- Test adlandırması açıklayıcı olsun
+- Test senaryoları detaylı olsun
+
+### Kod Yazma Kuralları
+- Sadece testi geçecek kadar kod yaz
+- PSR-12 standartlarına uy
+- DocBlock'ları eksiksiz yaz
+- Namespace'leri doğru kullan
+
+## Checkbox Yönetimi
+
+### Tamamlama İşaretleme
+Bir adım tamamlandığında:
+1. Testlerin geçtiğini doğrula
+2. İlgili checkbox'ı `[x]` olarak işaretle
+3. Bir sonraki adıma geç
+
+### Hata Durumunda
+Test başarısız olursa:
+1. Hata mesajını analiz et
+2. Kodu düzelt
+3. Test tekrar çalıştır
+4. Başarılı olana kadar devam et
+
+## Dosya Yapısı Kuralları
+
+### Migration Dosyaları
+- `/database/migrations/` dizininde
+- `create_approvals_table.php` formatında
+- Tüm gerekli sütunları içermeli
+
+### Model Dosyaları
+- `/src/Models/` dizininde
+- `Approval.php` ana model
+- `$fillable` veya `$guarded` tanımlı
+- İlişkiler doğru tanımlı
+
+### Trait Dosyaları
+- `/src/Traits/` dizininde
+- `HasApprovals.php` trait
+- İlişkiler ve metotlar içermeli
+
+### Test Dosyaları
+- `/tests/` dizininde
+- Pest PHP formatında
+- Her özellik için ayrı test
+
+## Yapılandırma Kuralları
+
+### Config Dosyası
+- `/config/approvals.php`
+- Tüm ayarlar eksiksiz
+- Varsayılan değerler tanımlı
+- Dokümantasyon mevcut
+
+### Service Provider
+- `/src/LaravelApprovalServiceProvider.php`
+- Package tools kullanılıyor
+- Tüm özellikler kayıtlı
+
+## Kalite Kontrol
+
+### Her Adımda Kontrol Edilecekler
+- [ ] Testler geçiyor mu?
+- [ ] Kod PSR-12 uyumlu mu?
+- [ ] DocBlock'lar mevcut mu?
+- [ ] Namespace'ler doğru mu?
+- [ ] İlişkiler çalışıyor mu?
+
+### Son Kontrol
+- [ ] Tüm testler geçiyor
+- [ ] Kod temiz ve okunabilir
+- [ ] Dokümantasyon tam
+- [ ] README güncel
+
+## Hızlı Referans
+
+### Test Çalıştırma
+```bash
+vendor/bin/pest
+```
+
+### Kod Formatı
+```bash
+vendor/bin/pint
+```
+
+### Analiz
+```bash
+vendor/bin/phpstan analyse
+```
+
+### Composer Update
+```bash
+composer dump-autoload
+```
+
+## Sonraki Adım Belirleme
+
+Her adım tamamlandığında:
+1. Checkbox'ı işaretle
+2. Bir sonraki adımı belirle
+3. Test senaryosunu oku
+4. Geliştirmeye başla
+
+## Hata Çözümü
+
+### Yaygın Hatalar
+- Namespace hataları: Composer autoload yenile
+- Test hataları: Test senaryosunu tekrar oku
+- Migration hataları: Migration dosyasını kontrol et
+- Config hataları: Config dosyasını doğrula
+
+### Debug Süreci
+1. Hata mesajını oku
+2. İlgili dosyayı kontrol et
+3. Test senaryosunu tekrar gözden geçir
+4. Gerekirse önceki adımları kontrol et
+
+Bu rehber, Laravel Approval paketinin kusursuz bir şekilde geliştirilmesini sağlar.
+description:
+globs:
+alwaysApply: false
+---

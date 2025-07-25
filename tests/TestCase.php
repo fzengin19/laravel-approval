@@ -1,10 +1,10 @@
 <?php
 
-namespace VendorName\Skeleton\Tests;
+namespace LaravelApproval\Tests;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use LaravelApproval\LaravelApprovalServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
-use VendorName\Skeleton\SkeletonServiceProvider;
 
 class TestCase extends Orchestra
 {
@@ -20,7 +20,7 @@ class TestCase extends Orchestra
     protected function getPackageProviders($app)
     {
         return [
-            SkeletonServiceProvider::class,
+            LaravelApprovalServiceProvider::class,
         ];
     }
 
@@ -28,10 +28,14 @@ class TestCase extends Orchestra
     {
         config()->set('database.default', 'testing');
 
-        /*
-         foreach (\Illuminate\Support\Facades\File::allFiles(__DIR__ . '/database/migrations') as $migration) {
+        // Run package migrations
+        foreach (\Illuminate\Support\Facades\File::allFiles(__DIR__.'/../database/migrations') as $migration) {
             (include $migration->getRealPath())->up();
-         }
-         */
+        }
+
+        // Run workbench migrations
+        foreach (\Illuminate\Support\Facades\File::allFiles(__DIR__.'/../workbench/database/migrations') as $migration) {
+            (include $migration->getRealPath())->up();
+        }
     }
 }

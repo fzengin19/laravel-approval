@@ -1,0 +1,8 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+File:
+  @laravel-approval-project.mdc
+  @tdd-workflow-guide.mdc

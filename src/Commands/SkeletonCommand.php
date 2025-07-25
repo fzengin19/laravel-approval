@@ -1,18 +1,18 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace FatihZengin\LaravelApproval\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class ApprovalCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'approval:setup';
 
-    public $description = 'My command';
+    public $description = 'Onay sistemi kurulum komutu';
 
     public function handle(): int
     {
-        $this->comment('All done');
+        $this->comment('Laravel Approval paketi kuruldu!');
 
         return self::SUCCESS;
     }

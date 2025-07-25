@@ -1,93 +1,260 @@
-# :package_description
+# Laravel Approval Package
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-<!--delete-->
----
-This repo can be used to scaffold a Laravel package. Follow these steps to get started:
+Laravel için kapsamlı onay sistemi paketi. Modellerinizin onay durumlarını yönetmek için güçlü ve esnek bir çözüm sunar.
 
-1. Press the "Use this template" button at the top of this repo to create a new repo with the contents of this skeleton.
-2. Run "php ./configure.php" to run a script that will replace all placeholders throughout all the files.
-3. Have fun creating your package.
-4. If you need help creating a package, consider picking up our <a href="https://laravelpackage.training">Laravel Package Training</a> video course.
----
-<!--/delete-->
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+## Özellikler
 
-## Support us
+- ✅ **Kolay Entegrasyon**: Sadece trait ekleyerek modellerinizi onay sistemi ile entegre edin
+- ✅ **Esnek Yapılandırma**: İki farklı mod (insert/upsert) ve özelleştirilebilir ayarlar
+- ✅ **Global Scope**: Otomatik olarak sadece onaylı kayıtları gösterin
+- ✅ **Olay Sistemi**: Durum değişikliklerinde olayları dinleyin
+- ✅ **Facade Desteği**: Kolay kullanım için Facade API'si
+- ✅ **Artisan Komutları**: CLI üzerinden istatistikleri görüntüleyin
+- ✅ **TDD Yaklaşımı**: %100 test kapsamı ile güvenilir kod
 
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/:package_name.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/:package_name)
+## Kurulum
 
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
-
-## Installation
-
-You can install the package via composer:
+### Composer ile Kurulum
 
 ```bash
-composer require :vendor_slug/:package_slug
+composer require fzengin19/laravel-approval
 ```
 
-You can publish and run the migrations with:
+### Service Provider'ı Yayınlama
 
 ```bash
-php artisan vendor:publish --tag=":package_slug-migrations"
+php artisan vendor:publish --provider="LaravelApproval\LaravelApprovalServiceProvider"
+```
+
+### Migration'ları Çalıştırma
+
+```bash
 php artisan migrate
 ```
 
-You can publish the config file with:
+## Hızlı Başlangıç
 
-```bash
-php artisan vendor:publish --tag=":package_slug-config"
+### 1. Model'e Trait Ekleme
+
+```php
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use LaravelApproval\Traits\HasApprovals;
+
+class Post extends Model
+{
+    use HasApprovals;
+
+    protected $fillable = [
+        'title',
+        'content',
+    ];
+}
 ```
 
-This is the contents of the published config file:
+### 2. Temel Kullanım
+
+```php
+// Post oluştur
+$post = Post::create([
+    'title' => 'Yeni Başlık',
+    'content' => 'İçerik...',
+]);
+
+// Onay durumunu kontrol et
+$post->isPending();    // false (henüz onay kaydı yok)
+$post->isApproved();   // false
+$post->isRejected();   // false
+
+// Beklemede durumuna geçir
+$post->setPending(1);  // 1 = onaylayan kullanıcı ID'si
+
+// Onayla
+$post->approve(1);
+
+// Reddet
+$post->reject(1, 'Geçersiz içerik', 'İçerik kurallara uymuyor');
+```
+
+## Yapılandırma
+
+### Config Dosyası
+
+`config/approvals.php` dosyasını yayınlayarak ayarları özelleştirebilirsiniz:
 
 ```php
 return [
+    'default' => [
+        'mode' => 'insert',                    // 'insert' veya 'upsert'
+        'auto_pending_on_create' => false,     // Model oluşturulduğunda otomatik pending
+        'show_only_approved_by_default' => false, // Global scope aktif mi?
+        'auto_scope' => true,                  // Global scope'u otomatik ekle
+        'events' => true,                      // Olayları tetikle
+    ],
+    
+    'models' => [
+        // Model özel ayarları
+        'App\Models\Post' => [
+            'mode' => 'upsert',
+            'auto_pending_on_create' => true,
+        ],
+    ],
 ];
 ```
 
-Optionally, you can publish the views using
+### Modlar
 
-```bash
-php artisan vendor:publish --tag=":package_slug-views"
-```
-
-## Usage
+#### Insert Modu
+Her durum değişikliğinde yeni bir onay kaydı oluşturur. Geçmiş takibi için idealdir.
 
 ```php
-$variable = new VendorName\Skeleton();
-echo $variable->echoPhrase('Hello, VendorName!');
+config(['approvals.default.mode' => 'insert']);
+
+$post->setPending(1);  // Yeni kayıt
+$post->approve(1);     // Yeni kayıt
+$post->reject(1);      // Yeni kayıt
+// Toplam: 3 kayıt
 ```
 
-## Testing
+#### Upsert Modu
+Mevcut onay kaydını günceller. Tek kayıt tutmak için idealdir.
+
+```php
+config(['approvals.default.mode' => 'upsert']);
+
+$post->setPending(1);  // Yeni kayıt
+$post->approve(1);     // Mevcut kaydı güncelle
+$post->reject(1);      // Mevcut kaydı güncelle
+// Toplam: 1 kayıt
+```
+
+## Gelişmiş Kullanım
+
+### Sorgu Scope'ları
+
+```php
+// Sadece onaylı post'ları getir
+$approvedPosts = Post::approved()->get();
+
+// Sadece beklemede post'ları getir
+$pendingPosts = Post::pending()->get();
+
+// Sadece reddedilmiş post'ları getir
+$rejectedPosts = Post::rejected()->get();
+
+// Onay durumu ile birlikte getir
+$posts = Post::withApprovalStatus()->get();
+```
+
+### Global Scope
+
+Global scope aktif olduğunda, sadece onaylı kayıtlar görünür:
+
+```php
+// Sadece onaylı post'lar
+$posts = Post::all();
+
+// Tüm post'ları görmek için
+$allPosts = Post::withUnapproved()->get();
+```
+
+### Otomatik Pending
+
+Model oluşturulduğunda otomatik olarak pending durumuna geçirmek için:
+
+```php
+config(['approvals.default.auto_pending_on_create' => true]);
+
+$post = Post::create(['title' => 'Test']);
+// Otomatik olarak pending durumunda olacak
+```
+
+### Olaylar
+
+Durum değişikliklerinde olayları dinleyebilirsiniz:
+
+```php
+use LaravelApproval\Events\ModelApproved;
+use LaravelApproval\Events\ModelRejected;
+use LaravelApproval\Events\ModelPending;
+
+Event::listen(ModelApproved::class, function ($event) {
+    $model = $event->model;
+    $approval = $event->approval;
+    
+    // Onaylandığında yapılacak işlemler
+    Mail::to($model->user)->send(new PostApprovedMail($model));
+});
+
+Event::listen(ModelRejected::class, function ($event) {
+    // Reddedildiğinde yapılacak işlemler
+});
+```
+
+## Facade Kullanımı
+
+```php
+use LaravelApproval\Facades\Approval;
+
+// Model onaylama
+Approval::approve($post, 1);
+
+// Model reddetme
+Approval::reject($post, 1, 'Geçersiz içerik', 'Açıklama');
+
+// Beklemede durumuna geçirme
+Approval::setPending($post, 1);
+
+// İstatistikleri alma
+$stats = Approval::getStatistics(Post::class);
+// [
+//     'total' => 10,
+//     'approved' => 7,
+//     'pending' => 2,
+//     'rejected' => 1,
+//     'approved_percentage' => 70.0,
+//     'pending_percentage' => 20.0,
+//     'rejected_percentage' => 10.0,
+// ]
+```
+
+## Artisan Komutları
+
+### İstatistikleri Görüntüleme
 
 ```bash
-composer test
+# Tüm modeller için istatistikler
+php artisan approval:status
+
+# Belirli bir model için istatistikler
+php artisan approval:status --model="App\Models\Post"
 ```
 
-## Changelog
+## Test
 
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
+```bash
+# Tüm testleri çalıştır
+vendor/bin/pest
 
-## Contributing
+# Belirli test dosyasını çalıştır
+vendor/bin/pest tests/Models/ApprovalTest.php
+```
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+## Katkıda Bulunma
 
-## Security Vulnerabilities
+1. Fork yapın
+2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
+3. Commit yapın (`git commit -m 'Add some amazing feature'`)
+4. Push yapın (`git push origin feature/amazing-feature`)
+5. Pull Request oluşturun
 
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
+## Lisans
 
-## Credits
+Bu paket MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakın.
 
-- [:author_name](https://github.com/:author_username)
-- [All Contributors](../../contributors)
+## Destek
 
-## License
-
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+Sorularınız için [GitHub Issues](https://github.com/fzengin19/laravel-approval/issues) sayfasını kullanabilirsiniz.
