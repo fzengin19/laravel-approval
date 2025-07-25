@@ -17,7 +17,7 @@ class LaravelApprovalServiceProvider extends PackageServiceProvider
     {
         $package
             ->name('laravel-approval')
-            ->hasConfigFile()
+            ->hasConfigFile('approvals')
             ->hasMigration('create_approvals_table')
             ->hasCommand(ApprovalStatusCommand::class);
     }
