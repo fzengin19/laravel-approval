@@ -2,13 +2,13 @@
 
 use Illuminate\Support\Facades\Auth;
 use LaravelApproval\Models\Approval;
-use LaravelApproval\Traits\HasApprovals;
-use Workbench\App\Models\Post;
+use LaravelApproval\Traits\Approvable;
+use Tests\Models\Post;
 
-// Test için Post modelini HasApprovals trait'i ile genişlet
+// Test için Post modelini Approvable trait'i ile genişlet
 class SetPendingTestPost extends Post
 {
-    use HasApprovals;
+    use Approvable;
 
     protected $table = 'posts';
 }

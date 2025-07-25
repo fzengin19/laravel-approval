@@ -1,19 +1,19 @@
 <?php
 
 use LaravelApproval\Models\Approval;
-use LaravelApproval\Traits\HasApprovals;
-use Workbench\App\Models\Post;
+use LaravelApproval\Traits\Approvable;
+use Tests\Models\Post;
 
-// Test için Post modelini HasApprovals trait'i ile genişlet
+// Test için Post modelini Approvable trait'i ile genişlet
 class LocalScopesTestPost extends Post
 {
-    use HasApprovals;
+    use Approvable;
 
     protected $table = 'posts';
 }
 
 beforeEach(function () {
-    // 3 onaylı post oluştur
+            // Create 3 approved posts
     for ($i = 1; $i <= 3; $i++) {
         $post = LocalScopesTestPost::create([
             'title' => "Approved Post {$i}",
@@ -28,7 +28,7 @@ beforeEach(function () {
         ]);
     }
 
-    // 2 beklemede post oluştur
+            // Create 2 pending posts
     for ($i = 1; $i <= 2; $i++) {
         $post = LocalScopesTestPost::create([
             'title' => "Pending Post {$i}",
@@ -86,4 +86,11 @@ it('can scope with approval status', function () {
 
     expect($posts)->toHaveCount(6);
     expect($posts->first()->latestApproval)->not->toBeNull();
+});
+
+it('can scope with unapproved posts', function () {
+    $posts = LocalScopesTestPost::withUnapproved()->get();
+
+    expect($posts)->toHaveCount(6);
+    // This scope removes the global scope, so all posts should be visible
 });

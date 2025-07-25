@@ -6,7 +6,7 @@ return [
     | Default Configuration
     |--------------------------------------------------------------------------
     |
-    | Bu bölüm, paketin varsayılan ayarlarını içerir.
+    | This section contains the default settings for the package.
     |
     */
     'default' => [
@@ -15,9 +15,9 @@ return [
         | Mode
         |--------------------------------------------------------------------------
         |
-        | Onay kayıtlarının nasıl oluşturulacağını belirler:
-        | - 'insert': Her durum değişikliğinde yeni bir kayıt oluşturur
-        | - 'upsert': Mevcut kaydı günceller veya yeni kayıt oluşturur
+        | Determines how approval records are created:
+        | - 'insert': Creates a new record for each status change
+        | - 'upsert': Updates existing record or creates new record
         |
         */
         'mode' => env('APPROVAL_MODE', 'insert'),
@@ -27,7 +27,7 @@ return [
         | Auto Pending on Create
         |--------------------------------------------------------------------------
         |
-        | Model oluşturulduğunda otomatik olarak pending durumuna geçirilip geçirilmeyeceği.
+        | Whether to automatically set to pending status when model is created.
         |
         */
         'auto_pending_on_create' => env('APPROVAL_AUTO_PENDING_ON_CREATE', false),
@@ -37,7 +37,7 @@ return [
         | Show Only Approved by Default
         |--------------------------------------------------------------------------
         |
-        | Global scope'un varsayılan olarak sadece onaylı kayıtları göstermesi.
+        | Whether global scope shows only approved records by default.
         |
         */
         'show_only_approved_by_default' => env('APPROVAL_SHOW_ONLY_APPROVED_BY_DEFAULT', false),
@@ -47,7 +47,7 @@ return [
         | Auto Scope
         |--------------------------------------------------------------------------
         |
-        | HasApprovals trait'ini kullanan modellere otomatik olarak global scope eklenip eklenmeyeceği.
+        | Whether to automatically add global scope to models using Approvable trait.
         |
         */
         'auto_scope' => env('APPROVAL_AUTO_SCOPE', true),
@@ -57,7 +57,7 @@ return [
         | Events
         |--------------------------------------------------------------------------
         |
-        | Durum değişikliklerinde olayların tetiklenip tetiklenmeyeceği.
+        | Whether to trigger events on status changes.
         |
         */
         'events' => env('APPROVAL_EVENTS', true),
@@ -68,11 +68,11 @@ return [
     | Models Configuration
     |--------------------------------------------------------------------------
     |
-    | Her model için özel ayarlar.
+    | Custom settings for each model.
     |
     */
     'models' => [
-        // Örnek: 'App\Models\Post' => [
+        // Example: 'App\Models\Post' => [
         //     'mode' => 'upsert',
         //     'auto_pending_on_create' => true,
         //     'show_only_approved_by_default' => true,
@@ -83,31 +83,106 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Status Options
+    | Rejection Reasons
     |--------------------------------------------------------------------------
     |
-    | Kullanılabilir durum seçenekleri
+    | Predefined rejection reasons
     |
     */
-    'statuses' => [
-        'pending' => 'pending',
-        'approved' => 'approved',
-        'rejected' => 'rejected',
+    'rejection_reasons' => [
+        'inappropriate_content' => 'Inappropriate Content',
+        'spam' => 'Spam',
+        'duplicate' => 'Duplicate',
+        'incomplete' => 'Incomplete',
+        'other' => 'Other',
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Rejection Reasons
+    | Features Configuration
     |--------------------------------------------------------------------------
     |
-    | Önceden tanımlanmış reddetme nedenleri
+    | Advanced features like notifications and auto-setup
     |
     */
-    'rejection_reasons' => [
-        'inappropriate_content' => 'Uygunsuz İçerik',
-        'spam' => 'Spam',
-        'duplicate' => 'Tekrar',
-        'incomplete' => 'Eksik',
-        'other' => 'Diğer',
+    'features' => [
+        'notifications' => [
+            /*
+            |--------------------------------------------------------------------------
+            | Notifications Enabled
+            |--------------------------------------------------------------------------
+            |
+            | Whether to enable notification system for approval events.
+            |
+            */
+            'enabled' => env('APPROVAL_NOTIFICATIONS_ENABLED', false),
+
+            /*
+            |--------------------------------------------------------------------------
+            | Mail Notifications
+            |--------------------------------------------------------------------------
+            |
+            | Email notification settings
+            |
+            */
+            'mail' => [
+                'enabled' => env('APPROVAL_MAIL_ENABLED', false),
+                'from_address' => env('APPROVAL_MAIL_FROM_ADDRESS', env('MAIL_FROM_ADDRESS')),
+                'from_name' => env('APPROVAL_MAIL_FROM_NAME', env('MAIL_FROM_NAME')),
+                'template' => env('APPROVAL_MAIL_TEMPLATE', null), // Custom mail template path
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | Database Notifications
+            |--------------------------------------------------------------------------
+            |
+            | Database notification settings
+            |
+            */
+            'database' => [
+                'enabled' => env('APPROVAL_DB_NOTIFICATIONS_ENABLED', false),
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | Event Notifications
+            |--------------------------------------------------------------------------
+            |
+            | Which events should trigger notifications
+            |
+            */
+            'events' => [
+                'approved' => env('APPROVAL_NOTIFY_APPROVED', true),
+                'rejected' => env('APPROVAL_NOTIFY_REJECTED', true),
+                'pending' => env('APPROVAL_NOTIFY_PENDING', false),
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | Notification Recipients
+            |--------------------------------------------------------------------------
+            |
+            | Who should receive notifications
+            |
+            */
+            'recipients' => [
+                'admin_email' => env('APPROVAL_ADMIN_EMAIL'),
+                'notify_model_owner' => env('APPROVAL_NOTIFY_MODEL_OWNER', true),
+            ],
+        ],
+
+        /*
+        |--------------------------------------------------------------------------
+        | Auto Setup
+        |--------------------------------------------------------------------------
+        |
+        | Automatic setup features
+        |
+        */
+        'auto_setup' => [
+            'migrations' => env('APPROVAL_AUTO_MIGRATIONS', false),
+            'notifications_table' => env('APPROVAL_AUTO_NOTIFICATIONS_TABLE', false),
+        ],
     ],
 ];

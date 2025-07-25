@@ -1,12 +1,12 @@
 <?php
 
-use LaravelApproval\Traits\HasApprovals;
-use Workbench\App\Models\Post;
+use LaravelApproval\Traits\Approvable;
+use Tests\Models\Post;
 
-// Test için Post modelini HasApprovals trait'i ile genişlet
+// Test için Post modelini Approvable trait'i ile genişlet
 class AutoPendingTestPost extends Post
 {
-    use HasApprovals;
+    use Approvable;
 
     protected $table = 'posts';
 }

@@ -1,22 +1,19 @@
 <?php
 
-use LaravelApproval\Traits\HasApprovals;
-use Workbench\App\Models\Post;
+use Tests\Models\Post;
 
-// Test için Post modelini HasApprovals trait'i ile genişlet
+// Post modeli zaten Approvable trait'ini kullanıyor
 class CommandTestPost extends Post
 {
-    use HasApprovals;
-
     protected $table = 'posts';
 }
 
 beforeEach(function () {
-    // Onaylı post oluştur
+            // Create approved post
     $approvedPost = CommandTestPost::create(['title' => 'Approved', 'content' => 'Content']);
     $approvedPost->approve(1);
 
-    // Beklemede post oluştur
+            // Create pending post
     $pendingPost = CommandTestPost::create(['title' => 'Pending', 'content' => 'Content']);
     $pendingPost->setPending(1);
 
@@ -46,5 +43,13 @@ it('can show statistics for specific model', function () {
 it('shows error for non-existent model', function () {
     $this->artisan('approval:status', ['--model' => 'NonExistentModel'])
         ->expectsOutputToContain("Model class 'NonExistentModel' does not exist.")
+        ->assertExitCode(0);
+});
+
+it('shows message when no models are configured', function () {
+    config(['approvals.models' => []]);
+
+    $this->artisan('approval:status')
+        ->expectsOutputToContain('No models configured for approval statistics.')
         ->assertExitCode(0);
 });

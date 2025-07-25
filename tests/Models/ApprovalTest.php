@@ -1,7 +1,7 @@
 <?php
 
 use LaravelApproval\Models\Approval;
-use Workbench\App\Models\Post;
+use Tests\Models\Post;
 
 beforeEach(function () {
     $this->post = Post::create([

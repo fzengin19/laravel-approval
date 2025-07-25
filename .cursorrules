@@ -1,4 +1,0 @@
-{
-  "alwaysApply": true,
-  "globs": ["dosya1.js","dosya2.js"]
-}

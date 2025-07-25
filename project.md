@@ -15,11 +15,13 @@ Bu belge, `laravel-approvals` paketinin adım adım, test odaklı (TDD) bir yakl
 * `[x]` **Geliştirme Adımı 1.2: Yapılandırma Dosyasını Oluştur**
     * `/config` klasörü içinde, proje tanımında belirtilen tüm seçenekleri içeren `approvals.php` dosyasını oluştur.
     * **Odak:** `default` ve `models` anahtarları altında tüm ayarlar (`mode`, `auto_pending_on_create` vb.) eksiksiz ve varsayılan değerleriyle bulunmalı.
+    * **Not:** Durum değerleri (`pending`, `approved`, `rejected`) sabit enum olarak kullanılacak, yapılandırma dosyasında özelleştirilemez.
 
 * `[x]` **Geliştirme Adımı 1.3: `Approval` Eloquent Modelini Oluştur**
     * `/src/Models` altında `Approval.php` modelini oluştur.
     * `$fillable` veya `$guarded` özelliklerini tanımla.
     * `approvable()` adında `morphTo` ilişkisini tanımla.
+    * Durum sabitlerini (`STATUS_PENDING`, `STATUS_APPROVED`, `STATUS_REJECTED`) tanımla.
 
 * `[x]` **Test Adımı 1.4: Çekirdek Model Testleri**
     * **Test Senaryosu:** `Approval` modelinin temel özelliklerini doğrula.
@@ -27,14 +29,14 @@ Bu belge, `laravel-approvals` paketinin adım adım, test odaklı (TDD) bir yakl
         * Bir `Approval` nesnesi oluşturulabildiğini test et (`Approval::create([...])`).
         * `approvable()` ilişkisinin doğru çalıştığını test et. Bir `Post` ve ona bağlı bir `Approval` kaydı oluşturup `$approval->approvable` ilişkisinin doğru `Post` nesnesini döndürdüğünü doğrula.
 
-* `[x]` **Geliştirme Adımı 1.5: `HasApprovals` Trait'i ve Temel İlişkileri Oluştur**
-    * `/src/Traits` altında `HasApprovals.php` dosyasını oluştur.
+* `[x]` **Geliştirme Adımı 1.5: `Approvable` Trait'i ve Temel İlişkileri Oluştur**
+    * `/src/Traits` altında `Approvable.php` dosyasını oluştur.
     * Trait içinde `approvals()` (`morphMany`) ve `latestApproval()` (`morphOne` ve `latestOfMany`) ilişkilerini tanımla.
 
 * `[x]` **Test Adımı 1.6: Trait İlişki Testleri**
-    * **Test Senaryosu:** `HasApprovals` trait'ini kullanan bir modelin ilişkilerinin doğru çalıştığını doğrula.
+    * **Test Senaryosu:** `Approvable` trait'ini kullanan bir modelin ilişkilerinin doğru çalıştığını doğrula.
     * **Adımlar:**
-        * Testler için `HasApprovals` trait'ini kullanan geçici bir `Post` modeli oluştur.
+        * Testler için `Approvable` trait'ini kullanan geçici bir `Post` modeli oluştur.
         * Bir `Post` ve ona bağlı 3 farklı `Approval` kaydı oluştur.
         * `$post->approvals()->count()` metodunun `3` döndürdüğünü doğrula.
         * `$post->latestApproval` ilişkisinin, bu 3 kayıttan en son oluşturulanı (ID'si en büyük olanı) döndürdüğünü doğrula.
@@ -46,7 +48,7 @@ Bu belge, `laravel-approvals` paketinin adım adım, test odaklı (TDD) bir yakl
 **Hedef:** Modelin onay durumunu sorgulayan ve değiştiren temel metotları yazmak ve test etmek.
 
 * `[x]` **Geliştirme Adımı 2.1: Durum Kontrol Metotlarını Ekle**
-    * `HasApprovals` trait'ine `isApproved()`, `isPending()`, `isRejected()` ve `getApprovalStatus()` metotlarını ekle. Bu metotlar `latestApproval` ilişkisinden gelen veriyi kullanmalıdır.
+    * `Approvable` trait'ine `isApproved()`, `isPending()`, `isRejected()` ve `getApprovalStatus()` metotlarını ekle. Bu metotlar `latestApproval` ilişkisinden gelen veriyi kullanmalıdır.
     * **Kenar Durum:** Eğer bir modelin hiç onay kaydı yoksa (`latestApproval` null ise), `is...` metotları `false` dönmeli, `getApprovalStatus` ise `null` dönmelidir.
 
 * `[x]` **Test Adımı 2.2: Durum Kontrol Metotlarını Test Et**
@@ -57,7 +59,7 @@ Bu belge, `laravel-approvals` paketinin adım adım, test odaklı (TDD) bir yakl
         * Hiç onay kaydı olmayan bir model için tüm `is...` metotlarının `false` döndüğünü doğrula.
 
 * `[x]` **Geliştirme Adımı 2.3: `setPending()` Metodunu Yaz**
-    * `HasApprovals` trait'ine `setPending` metodunu ekle.
+    * `Approvable` trait'ine `setPending` metodunu ekle.
     * Bu metot, `config('approvals.default.mode')` ayarını kontrol etmeli.
     * `insert` modunda yeni bir kayıt eklemeli, `upsert` modunda ise `updateOrCreate` kullanmalıdır.
     * `caused_by` ve `responded_at` alanlarını doğru şekilde doldurmalıdır.
@@ -70,6 +72,7 @@ Bu belge, `laravel-approvals` paketinin adım adım, test odaklı (TDD) bir yakl
         * Her iki modda da `status`, `caused_by` ve `responded_at` verilerinin doğru kaydedildiğini doğrula.
 
 * `[x]` **Geliştirme Adımı 2.5: `approve()` ve `reject()` Metotlarını Yaz**
+    * `Approvable` trait'ine `approve` ve `reject` metotlarını ekle.
     * `setPending` metodundaki mantığı temel alarak `approve` ve `reject` metotlarını oluştur.
     * `reject` metodu, `rejection_reason` ve `rejection_comment` alanlarını da doldurmalıdır.
     * `causedBy` argümanının `null` olması durumunda `auth()->id()`'yi kullanma mantığını ekle.

@@ -8,6 +8,13 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class Approval extends Model
 {
     /**
+     * Approval status constants
+     */
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_REJECTED = 'rejected';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -44,7 +51,7 @@ class Approval extends Model
      */
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where('status', self::STATUS_PENDING);
     }
 
     /**
@@ -52,7 +59,7 @@ class Approval extends Model
      */
     public function scopeApproved($query)
     {
-        return $query->where('status', 'approved');
+        return $query->where('status', self::STATUS_APPROVED);
     }
 
     /**
@@ -60,6 +67,6 @@ class Approval extends Model
      */
     public function scopeRejected($query)
     {
-        return $query->where('status', 'rejected');
+        return $query->where('status', self::STATUS_REJECTED);
     }
 }

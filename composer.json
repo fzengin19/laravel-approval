@@ -44,8 +44,11 @@
     "autoload-dev": {
         "psr-4": {
             "LaravelApproval\\Tests\\": "tests/",
-            "Workbench\\App\\": "workbench/app/"
-        }
+            "Tests\\": "tests/"
+        },
+        "classmap": [
+            "tests/database/factories/"
+        ]
     },
     "scripts": {
         "post-autoload-dump": "@composer run prepare",
