@@ -3,13 +3,10 @@
 namespace LaravelApproval\Tests\Listeners;
 
 use LaravelApproval\Events\ModelApproved;
-use LaravelApproval\Events\ModelRejected;
 use LaravelApproval\Events\ModelPending;
+use LaravelApproval\Events\ModelRejected;
 use LaravelApproval\Listeners\SendApprovalNotifications;
-use LaravelApproval\Models\Approval;
 use LaravelApproval\Notifications\ModelApprovedNotification;
-use LaravelApproval\Notifications\ModelRejectedNotification;
-use LaravelApproval\Notifications\ModelPendingNotification;
 use LaravelApproval\Tests\TestCase;
 use Tests\Models\Post;
 use Tests\Models\User;
@@ -27,7 +24,7 @@ class SendApprovalNotificationsTest extends TestCase
         $approval = $post->approve(1);
 
         $event = new ModelApproved($post, $approval);
-        $listener = new SendApprovalNotifications();
+        $listener = new SendApprovalNotifications;
 
         // Mock notification
         $this->mock(\Illuminate\Notifications\ChannelManager::class, function ($mock) {
@@ -46,7 +43,7 @@ class SendApprovalNotificationsTest extends TestCase
         $approval = $post->approve(1);
 
         $event = new ModelApproved($post, $approval);
-        $listener = new SendApprovalNotifications();
+        $listener = new SendApprovalNotifications;
 
         // Mock notification should not be called
         $this->mock(\Illuminate\Notifications\ChannelManager::class, function ($mock) {
@@ -67,7 +64,7 @@ class SendApprovalNotificationsTest extends TestCase
         $approval = $post->approve(1);
 
         $event = new ModelApproved($post, $approval);
-        $listener = new SendApprovalNotifications();
+        $listener = new SendApprovalNotifications;
 
         // Mock notification to model owner
         $this->mock(\Illuminate\Notifications\ChannelManager::class, function ($mock) {
@@ -91,7 +88,7 @@ class SendApprovalNotificationsTest extends TestCase
         $approval = $post->approve(1);
 
         $event = new ModelApproved($post, $approval);
-        $listener = new SendApprovalNotifications();
+        $listener = new SendApprovalNotifications;
 
         // Mock notification to admin
         $this->mock(\Illuminate\Notifications\ChannelManager::class, function ($mock) {
@@ -114,7 +111,7 @@ class SendApprovalNotificationsTest extends TestCase
         $approval = $post->reject(1, 'spam');
 
         $event = new ModelRejected($post, $approval);
-        $listener = new SendApprovalNotifications();
+        $listener = new SendApprovalNotifications;
 
         // Mock notification
         $this->mock(\Illuminate\Notifications\ChannelManager::class, function ($mock) {
@@ -135,7 +132,7 @@ class SendApprovalNotificationsTest extends TestCase
         $approval = $post->setPending(1);
 
         $event = new ModelPending($post, $approval);
-        $listener = new SendApprovalNotifications();
+        $listener = new SendApprovalNotifications;
 
         // Mock notification
         $this->mock(\Illuminate\Notifications\ChannelManager::class, function ($mock) {
@@ -156,7 +153,7 @@ class SendApprovalNotificationsTest extends TestCase
         $approval = $post->approve(1);
 
         $event = new ModelApproved($post, $approval);
-        $listener = new SendApprovalNotifications();
+        $listener = new SendApprovalNotifications;
 
         // Mock notification should not be called
         $this->mock(\Illuminate\Notifications\ChannelManager::class, function ($mock) {
@@ -176,7 +173,7 @@ class SendApprovalNotificationsTest extends TestCase
         $approval = $post->approve(1);
 
         $event = new ModelApproved($post, $approval);
-        $listener = new SendApprovalNotifications();
+        $listener = new SendApprovalNotifications;
 
         // Should not throw error
         $this->expectNotToPerformAssertions();
@@ -194,7 +191,7 @@ class SendApprovalNotificationsTest extends TestCase
         $approval = $post->approve(1);
 
         $event = new ModelApproved($post, $approval);
-        $listener = new SendApprovalNotifications();
+        $listener = new SendApprovalNotifications;
 
         // Mock notification to model owner via user_id
         $this->mock(\Illuminate\Notifications\ChannelManager::class, function ($mock) {
@@ -220,7 +217,7 @@ class SendApprovalNotificationsTest extends TestCase
         $approval = $post->approve(1);
 
         $event = new ModelApproved($post, $approval);
-        $listener = new SendApprovalNotifications();
+        $listener = new SendApprovalNotifications;
 
         // Mock notification to existing admin user
         $this->mock(\Illuminate\Notifications\ChannelManager::class, function ($mock) {
@@ -244,7 +241,7 @@ class SendApprovalNotificationsTest extends TestCase
         $approval = $post->approve(1);
 
         $event = new ModelApproved($post, $approval);
-        $listener = new SendApprovalNotifications();
+        $listener = new SendApprovalNotifications;
 
         // Mock notification to anonymous admin user
         $this->mock(\Illuminate\Notifications\ChannelManager::class, function ($mock) {
@@ -268,7 +265,7 @@ class SendApprovalNotificationsTest extends TestCase
         $approval = $post->approve(1);
 
         $event = new ModelApproved($post, $approval);
-        $listener = new SendApprovalNotifications();
+        $listener = new SendApprovalNotifications;
 
         // Mock notification should not be called
         $this->mock(\Illuminate\Notifications\ChannelManager::class, function ($mock) {
@@ -278,7 +275,7 @@ class SendApprovalNotificationsTest extends TestCase
         $listener->handle($event);
     }
 
-    public function test_listener_handles_admin_notification_with_anonymous_class_routeNotificationFor()
+    public function test_listener_handles_admin_notification_with_anonymous_class_route_notification_for()
     {
         config(['approvals.features.notifications.enabled' => true]);
         config(['approvals.features.notifications.mail.enabled' => true]);
@@ -290,7 +287,7 @@ class SendApprovalNotificationsTest extends TestCase
         $approval = $post->approve(1);
 
         $event = new ModelApproved($post, $approval);
-        $listener = new SendApprovalNotifications();
+        $listener = new SendApprovalNotifications;
 
         // Mock notification to test anonymous class routeNotificationFor method
         $this->mock(\Illuminate\Notifications\ChannelManager::class, function ($mock) {
@@ -302,32 +299,36 @@ class SendApprovalNotificationsTest extends TestCase
         $listener->handle($event);
     }
 
-    public function test_listener_anonymous_class_routeNotificationFor_method()
+    public function test_listener_anonymous_class_route_notification_for_method()
     {
         // Anonymous class'ın routeNotificationFor metodunu doğrudan test et
         $adminEmail = 'test@example.com';
-        
-        $admin = new class($adminEmail) {
+
+        $admin = new class($adminEmail)
+        {
             use \Illuminate\Notifications\Notifiable;
-            
+
             public $email;
+
             public $name = 'Admin';
-            
-            public function __construct($email) {
+
+            public function __construct($email)
+            {
                 $this->email = $email;
             }
-            
-            public function routeNotificationFor($driver) {
+
+            public function routeNotificationFor($driver)
+            {
                 return $this->email;
             }
         };
-        
+
         // routeNotificationFor metodunu test et
         $this->assertEquals('test@example.com', $admin->routeNotificationFor('mail'));
         $this->assertEquals('test@example.com', $admin->routeNotificationFor('database'));
     }
 
-    public function test_listener_anonymous_class_routeNotificationFor_method_integration()
+    public function test_listener_anonymous_class_route_notification_for_method_integration()
     {
         config(['approvals.features.notifications.enabled' => true]);
         config(['approvals.features.notifications.mail.enabled' => true]);
@@ -339,7 +340,7 @@ class SendApprovalNotificationsTest extends TestCase
         $approval = $post->approve(1);
 
         $event = new ModelApproved($post, $approval);
-        $listener = new SendApprovalNotifications();
+        $listener = new SendApprovalNotifications;
 
         // Mock notification to ensure routeNotificationFor is called
         $this->mock(\Illuminate\Notifications\ChannelManager::class, function ($mock) {
@@ -354,4 +355,4 @@ class SendApprovalNotificationsTest extends TestCase
 
         $listener->handle($event);
     }
-} 
+}

@@ -17,4 +17,4 @@ class UserFactory extends Factory
             'password' => bcrypt('password'),
         ];
     }
-} 
+}

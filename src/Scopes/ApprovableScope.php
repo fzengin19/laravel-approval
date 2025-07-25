@@ -15,7 +15,7 @@ class ApprovableScope implements Scope
     {
         $modelClass = get_class($model);
         $modelsConfig = config('approvals.models', []);
-        
+
         // Check if this model has specific configuration
         $showOnlyApproved = false;
         if (isset($modelsConfig[$modelClass]['show_only_approved_by_default'])) {
@@ -23,7 +23,7 @@ class ApprovableScope implements Scope
         } else {
             $showOnlyApproved = config('approvals.default.show_only_approved_by_default', false);
         }
-        
+
         if ($showOnlyApproved) {
             $builder->whereHas('latestApproval', function ($query) {
                 $query->where('status', \LaravelApproval\Models\Approval::STATUS_APPROVED);

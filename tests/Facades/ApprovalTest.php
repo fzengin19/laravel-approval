@@ -46,11 +46,11 @@ it('can set pending through facade', function () {
 });
 
 it('can get statistics for a model class', function () {
-            // Create approved post
+    // Create approved post
     $approvedPost = FacadeTestPost::create(['title' => 'Approved', 'content' => 'Content']);
     $approvedPost->approve(1);
 
-            // Create pending post
+    // Create pending post
     $pendingPost = FacadeTestPost::create(['title' => 'Pending', 'content' => 'Content']);
     $pendingPost->setPending(1);
 

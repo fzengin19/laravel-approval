@@ -13,6 +13,7 @@ class ModelPendingNotification extends Notification implements ShouldQueue
     use Queueable;
 
     public $model;
+
     public $approval;
 
     /**
@@ -30,18 +31,18 @@ class ModelPendingNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $channels = [];
-        
+
         // Pending notification'ları opsiyonel olarak aktif edilebilir
         if (config('approvals.features.notifications.events.pending', false)) {
             if (config('approvals.features.notifications.mail.enabled', false)) {
                 $channels[] = 'mail';
             }
-            
+
             if (config('approvals.features.notifications.database.enabled', false)) {
                 $channels[] = 'database';
             }
         }
-        
+
         return $channels;
     }
 
@@ -52,19 +53,19 @@ class ModelPendingNotification extends Notification implements ShouldQueue
     {
         $modelName = class_basename($this->model);
         $modelId = $this->model->id ?? 'N/A';
-        
+
         // Custom mail template kullanılabilir
         $template = config('approvals.features.notifications.mail.template', null);
-        
+
         $mailMessage = (new MailMessage)
             ->subject("⏳ {$modelName} Pending Approval")
             ->greeting("Hello {$notifiable->name}!")
             ->line("{$modelName} (ID: {$modelId}) is pending approval.")
-            ->line("Pending Date: " . $this->approval->created_at->format('Y-m-d H:i'))
-            ->line("This item will be activated once approved.")
+            ->line('Pending Date: '.$this->approval->created_at->format('Y-m-d H:i'))
+            ->line('This item will be activated once approved.')
             ->action('Approval Management', url('/admin/approvals'))
             ->line('You will be notified about the approval process.');
-            
+
         // Custom template varsa kullan
         if ($template) {
             $mailMessage->view($template, [
@@ -74,7 +75,7 @@ class ModelPendingNotification extends Notification implements ShouldQueue
                 'approvable' => $this->approval->approvable, // Model ilişkisi
             ]);
         }
-        
+
         return $mailMessage;
     }
 
@@ -90,7 +91,7 @@ class ModelPendingNotification extends Notification implements ShouldQueue
             'approval_id' => $this->approval->id,
             'caused_by' => $this->approval->caused_by,
             'pending_at' => $this->approval->created_at,
-            'message' => class_basename($this->model) . ' onay bekliyor',
+            'message' => class_basename($this->model).' onay bekliyor',
         ];
     }
-} 
+}

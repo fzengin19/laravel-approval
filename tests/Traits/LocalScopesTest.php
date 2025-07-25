@@ -13,7 +13,7 @@ class LocalScopesTestPost extends Post
 }
 
 beforeEach(function () {
-            // Create 3 approved posts
+    // Create 3 approved posts
     for ($i = 1; $i <= 3; $i++) {
         $post = LocalScopesTestPost::create([
             'title' => "Approved Post {$i}",
@@ -28,7 +28,7 @@ beforeEach(function () {
         ]);
     }
 
-            // Create 2 pending posts
+    // Create 2 pending posts
     for ($i = 1; $i <= 2; $i++) {
         $post = LocalScopesTestPost::create([
             'title' => "Pending Post {$i}",

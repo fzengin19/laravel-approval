@@ -2,13 +2,13 @@
 
 namespace Tests\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable
 {
-    use Notifiable, HasFactory;
+    use HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
@@ -30,4 +30,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(Post::class, 'created_by');
     }
-} 
+}

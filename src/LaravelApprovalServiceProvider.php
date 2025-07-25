@@ -3,11 +3,11 @@
 namespace LaravelApproval;
 
 use LaravelApproval\Commands\ApprovalStatusCommand;
-use LaravelApproval\Services\ApprovalService;
 use LaravelApproval\Events\ModelApproved;
-use LaravelApproval\Events\ModelRejected;
 use LaravelApproval\Events\ModelPending;
+use LaravelApproval\Events\ModelRejected;
 use LaravelApproval\Listeners\SendApprovalNotifications;
+use LaravelApproval\Services\ApprovalService;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 

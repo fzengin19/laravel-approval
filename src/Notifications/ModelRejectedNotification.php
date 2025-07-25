@@ -13,6 +13,7 @@ class ModelRejectedNotification extends Notification implements ShouldQueue
     use Queueable;
 
     public $model;
+
     public $approval;
 
     /**
@@ -30,15 +31,15 @@ class ModelRejectedNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $channels = [];
-        
+
         if (config('approvals.features.notifications.mail.enabled', false)) {
             $channels[] = 'mail';
         }
-        
+
         if (config('approvals.features.notifications.database.enabled', false)) {
             $channels[] = 'database';
         }
-        
+
         return $channels;
     }
 
@@ -49,29 +50,29 @@ class ModelRejectedNotification extends Notification implements ShouldQueue
     {
         $modelName = class_basename($this->model);
         $modelId = $this->model->id ?? 'N/A';
-        
+
         // Custom mail template kullanılabilir
         $template = config('approvals.features.notifications.mail.template', null);
-        
+
         $mailMessage = (new MailMessage)
             ->subject("❌ {$modelName} Rejected")
             ->greeting("Hello {$notifiable->name}!")
             ->line("{$modelName} (ID: {$modelId}) has been rejected.")
-            ->line("Rejected by: " . ($this->approval->caused_by ? "User ID: {$this->approval->caused_by}" : "System"))
-            ->line("Rejection Date: " . $this->approval->created_at->format('Y-m-d H:i'));
+            ->line('Rejected by: '.($this->approval->caused_by ? "User ID: {$this->approval->caused_by}" : 'System'))
+            ->line('Rejection Date: '.$this->approval->created_at->format('Y-m-d H:i'));
 
         if ($this->approval->rejection_reason) {
-            $mailMessage->line("Rejection Reason: " . $this->approval->rejection_reason);
+            $mailMessage->line('Rejection Reason: '.$this->approval->rejection_reason);
         }
 
         if ($this->approval->rejection_comment) {
-            $mailMessage->line("Comment: " . $this->approval->rejection_comment);
+            $mailMessage->line('Comment: '.$this->approval->rejection_comment);
         }
 
         $mailMessage = $mailMessage
-            ->action('View Details', url('/admin/approvals/' . $this->approval->id))
+            ->action('View Details', url('/admin/approvals/'.$this->approval->id))
             ->line('Please contact us for more information.');
-            
+
         // Custom template varsa kullan
         if ($template) {
             $mailMessage->view($template, [
@@ -81,7 +82,7 @@ class ModelRejectedNotification extends Notification implements ShouldQueue
                 'approvable' => $this->approval->approvable, // Model ilişkisi
             ]);
         }
-        
+
         return $mailMessage;
     }
 
@@ -99,7 +100,7 @@ class ModelRejectedNotification extends Notification implements ShouldQueue
             'rejected_at' => $this->approval->created_at,
             'reason' => $this->approval->rejection_reason,
             'comment' => $this->approval->rejection_comment,
-            'message' => class_basename($this->model) . ' reddedildi',
+            'message' => class_basename($this->model).' reddedildi',
         ];
     }
-} 
+}

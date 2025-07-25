@@ -1,6 +1,5 @@
 <?php
 
-use LaravelApproval\Models\Approval;
 use LaravelApproval\Traits\Approvable;
 use Tests\Models\Post;
 
@@ -61,7 +60,7 @@ it('handles all predefined reasons correctly', function () {
 
     foreach ($predefinedReasons as $reason) {
         $approval = $this->post->reject(1, $reason, 'Test comment');
-        
+
         expect($approval->rejection_reason)->toBe($reason);
         expect($approval->rejection_comment)->toBe('Test comment');
     }
@@ -100,4 +99,4 @@ it('handles empty string reason', function () {
 
     expect($approval->rejection_reason)->toBe('other');
     expect($approval->rejection_comment)->toBe(' - Test comment');
-}); 
+});

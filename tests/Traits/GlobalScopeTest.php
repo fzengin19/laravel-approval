@@ -13,7 +13,7 @@ class GlobalScopeTestPost extends Post
 }
 
 beforeEach(function () {
-        // Create approved post
+    // Create approved post
     $approvedPost = GlobalScopeTestPost::create([
         'title' => 'Approved Post',
         'content' => 'Content',
@@ -26,7 +26,7 @@ beforeEach(function () {
         'caused_by' => 1,
     ]);
 
-        // Create pending post
+    // Create pending post
     $pendingPost = GlobalScopeTestPost::create([
         'title' => 'Pending Post',
         'content' => 'Content',
