@@ -27,7 +27,7 @@ class ModelApprovedNotificationTest extends TestCase
         $user = User::factory()->create(['name' => 'John Doe']);
         $post = Post::factory()->create([
             'title' => 'Test Post',
-            'created_by' => $user->id
+            'created_by' => $user->id,
         ]);
         $approval = $post->approve(1);
 
@@ -35,7 +35,7 @@ class ModelApprovedNotificationTest extends TestCase
         $mailMessage = $notification->toMail($user);
 
         $this->assertStringContainsString('Hello John Doe!', $mailMessage->greeting);
-        $this->assertStringContainsString('Post (ID: ' . $post->id . ') has been successfully approved.', $mailMessage->introLines[0]);
+        $this->assertStringContainsString('Post (ID: '.$post->id.') has been successfully approved.', $mailMessage->introLines[0]);
         $this->assertStringContainsString('Approved by: User ID: 1', $mailMessage->introLines[1]);
     }
 
@@ -119,4 +119,4 @@ class ModelApprovedNotificationTest extends TestCase
 
         $this->assertStringContainsString('Approved by: System', $mailMessage->introLines[1]);
     }
-} 
+}

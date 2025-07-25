@@ -9,11 +9,11 @@ class CommandTestPost extends Post
 }
 
 beforeEach(function () {
-            // Create approved post
+    // Create approved post
     $approvedPost = CommandTestPost::create(['title' => 'Approved', 'content' => 'Content']);
     $approvedPost->approve(1);
 
-            // Create pending post
+    // Create pending post
     $pendingPost = CommandTestPost::create(['title' => 'Pending', 'content' => 'Content']);
     $pendingPost->setPending(1);
 

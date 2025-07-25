@@ -13,6 +13,7 @@ class ModelApprovedNotification extends Notification implements ShouldQueue
     use Queueable;
 
     public $model;
+
     public $approval;
 
     /**
@@ -30,15 +31,15 @@ class ModelApprovedNotification extends Notification implements ShouldQueue
     public function via(object $notifiable): array
     {
         $channels = [];
-        
+
         if (config('approvals.features.notifications.mail.enabled', false)) {
             $channels[] = 'mail';
         }
-        
+
         if (config('approvals.features.notifications.database.enabled', false)) {
             $channels[] = 'database';
         }
-        
+
         return $channels;
     }
 
@@ -49,19 +50,19 @@ class ModelApprovedNotification extends Notification implements ShouldQueue
     {
         $modelName = class_basename($this->model);
         $modelId = $this->model->id ?? 'N/A';
-        
+
         // Custom mail template kullanılabilir
         $template = config('approvals.features.notifications.mail.template', null);
-        
+
         $mailMessage = (new MailMessage)
             ->subject("✅ {$modelName} Approved")
             ->greeting("Hello {$notifiable->name}!")
             ->line("{$modelName} (ID: {$modelId}) has been successfully approved.")
-            ->line("Approved by: " . ($this->approval->caused_by ? "User ID: {$this->approval->caused_by}" : "System"))
-            ->line("Approval Date: " . $this->approval->created_at->format('Y-m-d H:i'))
-            ->action('View Details', url('/admin/approvals/' . $this->approval->id))
+            ->line('Approved by: '.($this->approval->caused_by ? "User ID: {$this->approval->caused_by}" : 'System'))
+            ->line('Approval Date: '.$this->approval->created_at->format('Y-m-d H:i'))
+            ->action('View Details', url('/admin/approvals/'.$this->approval->id))
             ->line('This action was performed automatically.');
-            
+
         // Custom template varsa kullan
         if ($template) {
             $mailMessage->view($template, [
@@ -71,7 +72,7 @@ class ModelApprovedNotification extends Notification implements ShouldQueue
                 'approvable' => $this->approval->approvable, // Model ilişkisi
             ]);
         }
-        
+
         return $mailMessage;
     }
 
@@ -87,7 +88,7 @@ class ModelApprovedNotification extends Notification implements ShouldQueue
             'approval_id' => $this->approval->id,
             'caused_by' => $this->approval->caused_by,
             'approved_at' => $this->approval->created_at,
-            'message' => class_basename($this->model) . ' onaylandı',
+            'message' => class_basename($this->model).' onaylandı',
         ];
     }
-} 
+}

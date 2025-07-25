@@ -2,9 +2,9 @@
 
 namespace Tests\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use LaravelApproval\Traits\Approvable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Post extends Model
 {
@@ -26,4 +26,4 @@ class Post extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-} 
+}

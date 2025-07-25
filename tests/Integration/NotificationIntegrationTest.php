@@ -2,10 +2,6 @@
 
 namespace LaravelApproval\Tests\Integration;
 
-use LaravelApproval\Events\ModelApproved;
-use LaravelApproval\Events\ModelRejected;
-use LaravelApproval\Events\ModelPending;
-use LaravelApproval\Listeners\SendApprovalNotifications;
 use LaravelApproval\Tests\TestCase;
 use Tests\Models\Post;
 use Tests\Models\User;
@@ -103,4 +99,4 @@ class NotificationIntegrationTest extends TestCase
         $this->assertEquals($post->id, $post->latestApproval->approvable_id);
         $this->assertEquals($post->id, $post->latestApproval->approvable->id);
     }
-} 
+}

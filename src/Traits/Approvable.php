@@ -69,12 +69,12 @@ trait Approvable
     {
         $modelClass = get_class($this);
         $modelsConfig = config('approvals.models', []);
-        
+
         // Check if this model has specific configuration
         if (isset($modelsConfig[$modelClass][$key])) {
             return $modelsConfig[$modelClass][$key];
         }
-        
+
         // Fall back to default configuration
         return config("approvals.default.{$key}", $default);
     }
@@ -145,7 +145,7 @@ trait Approvable
 
     /**
      * Reject the model.
-     * 
+     *
      * Smart rejection handling:
      * - If $reason is a predefined key from config, use it as rejection_reason
      * - If $reason is not a predefined key, use 'other' as rejection_reason and $reason as rejection_comment
@@ -169,7 +169,7 @@ trait Approvable
             } else {
                 // It's a custom reason, use 'other' as rejection_reason and the reason as comment
                 $finalReason = 'other';
-                $finalComment = $reason . ($comment ? ' - ' . $comment : '');
+                $finalComment = $reason.($comment ? ' - '.$comment : '');
             }
         }
 

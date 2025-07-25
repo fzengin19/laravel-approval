@@ -2,7 +2,6 @@
 
 namespace LaravelApproval\Tests\Notifications;
 
-use LaravelApproval\Models\Approval;
 use LaravelApproval\Notifications\ModelPendingNotification;
 use LaravelApproval\Tests\TestCase;
 use Tests\Models\Post;
@@ -27,7 +26,7 @@ class ModelPendingNotificationTest extends TestCase
         $user = User::factory()->create(['name' => 'John Doe']);
         $post = Post::factory()->create([
             'title' => 'Test Post',
-            'created_by' => $user->id
+            'created_by' => $user->id,
         ]);
         $approval = $post->setPending(1);
 
@@ -35,7 +34,7 @@ class ModelPendingNotificationTest extends TestCase
         $mailMessage = $notification->toMail($user);
 
         $this->assertStringContainsString('Hello John Doe!', $mailMessage->greeting);
-        $this->assertStringContainsString('Post (ID: ' . $post->id . ') is pending approval.', $mailMessage->introLines[0]);
+        $this->assertStringContainsString('Post (ID: '.$post->id.') is pending approval.', $mailMessage->introLines[0]);
         $this->assertStringContainsString('This item will be activated once approved.', $mailMessage->introLines[2]);
     }
 
@@ -100,7 +99,7 @@ class ModelPendingNotificationTest extends TestCase
         $notification = new ModelPendingNotification($post, $approval);
         $mailMessage = $notification->toMail($user);
 
-        $this->assertStringContainsString('Post (ID: ' . $post->id . ') is pending approval.', $mailMessage->introLines[0]);
+        $this->assertStringContainsString('Post (ID: '.$post->id.') is pending approval.', $mailMessage->introLines[0]);
     }
 
     public function test_notification_uses_custom_template_when_configured()
@@ -118,4 +117,4 @@ class ModelPendingNotificationTest extends TestCase
         // Custom template kullanıldığını kontrol et
         $this->assertEquals('custom.template', config('approvals.features.notifications.mail.template'));
     }
-} 
+}

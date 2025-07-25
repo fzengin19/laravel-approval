@@ -4,12 +4,11 @@ namespace LaravelApproval\Listeners;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use LaravelApproval\Events\ModelApproved;
-use LaravelApproval\Events\ModelRejected;
 use LaravelApproval\Events\ModelPending;
+use LaravelApproval\Events\ModelRejected;
 use LaravelApproval\Notifications\ModelApprovedNotification;
-use LaravelApproval\Notifications\ModelRejectedNotification;
 use LaravelApproval\Notifications\ModelPendingNotification;
-use Illuminate\Foundation\Auth\User;
+use LaravelApproval\Notifications\ModelRejectedNotification;
 
 class SendApprovalNotifications implements ShouldQueue
 {
@@ -18,7 +17,7 @@ class SendApprovalNotifications implements ShouldQueue
      */
     public function handle($event): void
     {
-        if (!config('approvals.features.notifications.enabled', false)) {
+        if (! config('approvals.features.notifications.enabled', false)) {
             return;
         }
 
@@ -65,30 +64,34 @@ class SendApprovalNotifications implements ShouldQueue
     protected function notifyAdmin($event, $model, $approval): void
     {
         $adminEmail = config('approvals.features.notifications.recipients.admin_email');
-        
+
         if ($adminEmail) {
             // Admin kullanıcısını bul veya oluştur
             $userClass = config('auth.providers.users.model', \App\Models\User::class);
             $admin = $userClass::where('email', $adminEmail)->first();
-            
-            if (!$admin) {
+
+            if (! $admin) {
                 // Admin kullanıcısı yoksa, geçici bir notifiable oluştur
-                $admin = new class($adminEmail) {
+                $admin = new class($adminEmail)
+                {
                     use \Illuminate\Notifications\Notifiable;
-                    
+
                     public $email;
+
                     public $name = 'Admin';
-                    
-                    public function __construct($email) {
+
+                    public function __construct($email)
+                    {
                         $this->email = $email;
                     }
-                    
-                    public function routeNotificationFor($driver) {
+
+                    public function routeNotificationFor($driver)
+                    {
                         return $this->email;
                     }
                 };
             }
-            
+
             $this->sendNotification($event, $admin, $model, $approval);
         }
     }
@@ -101,13 +104,13 @@ class SendApprovalNotifications implements ShouldQueue
         if ($event instanceof ModelApproved && config('approvals.features.notifications.events.approved', true)) {
             $notifiable->notify(new ModelApprovedNotification($model, $approval));
         }
-        
+
         if ($event instanceof ModelRejected && config('approvals.features.notifications.events.rejected', true)) {
             $notifiable->notify(new ModelRejectedNotification($model, $approval));
         }
-        
+
         if ($event instanceof ModelPending && config('approvals.features.notifications.events.pending', false)) {
             $notifiable->notify(new ModelPendingNotification($model, $approval));
         }
     }
-} 
+}

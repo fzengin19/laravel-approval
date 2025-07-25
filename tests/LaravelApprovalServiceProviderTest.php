@@ -4,7 +4,6 @@ namespace LaravelApproval\Tests;
 
 use LaravelApproval\LaravelApprovalServiceProvider;
 use LaravelApproval\Services\ApprovalService;
-use LaravelApproval\Tests\TestCase;
 use Tests\Models\Post;
 use Tests\Models\User;
 
@@ -60,4 +59,4 @@ class LaravelApprovalServiceProviderTest extends TestCase
         $this->assertNotNull($post->reject(1, 'spam'));
         $this->assertNotNull($post->setPending(1));
     }
-} 
+}

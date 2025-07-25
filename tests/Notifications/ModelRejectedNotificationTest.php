@@ -36,7 +36,7 @@ class ModelRejectedNotificationTest extends TestCase
         $user = User::factory()->create(['name' => 'John Doe']);
         $post = Post::factory()->create([
             'title' => 'Test Post',
-            'created_by' => $user->id
+            'created_by' => $user->id,
         ]);
         $approval = $post->reject(1, 'spam', 'This is spam content');
 
@@ -48,9 +48,9 @@ class ModelRejectedNotificationTest extends TestCase
         $mailMessage = $notification->toMail($user);
 
         $this->assertStringContainsString('Hello John Doe!', $mailMessage->greeting);
-        $this->assertStringContainsString('Post (ID: ' . $post->id . ') has been rejected.', $mailMessage->introLines[0]);
+        $this->assertStringContainsString('Post (ID: '.$post->id.') has been rejected.', $mailMessage->introLines[0]);
         $this->assertStringContainsString('Rejected by: User ID: 1', $mailMessage->introLines[1]);
-        
+
         // Reason ve comment'in introLines'da olup olmadığını kontrol et
         $introLinesText = implode(' ', $mailMessage->introLines);
         $this->assertStringContainsString('Rejection Reason: spam', $introLinesText);
@@ -66,8 +66,8 @@ class ModelRejectedNotificationTest extends TestCase
         $notification = new ModelRejectedNotification($post, $approval);
         $mailMessage = $notification->toMail($user);
 
-        $this->assertStringContainsString('Post (ID: ' . $post->id . ') has been rejected.', $mailMessage->introLines[0]);
-        
+        $this->assertStringContainsString('Post (ID: '.$post->id.') has been rejected.', $mailMessage->introLines[0]);
+
         // Reason ve comment'in introLines'da olmadığını kontrol et
         $introLinesText = implode(' ', $mailMessage->introLines);
         $this->assertStringNotContainsString('Rejection Reason:', $introLinesText);
@@ -160,4 +160,4 @@ class ModelRejectedNotificationTest extends TestCase
         // Custom template kullanıldığını kontrol et
         $this->assertEquals('custom.template', config('approvals.features.notifications.mail.template'));
     }
-} 
+}

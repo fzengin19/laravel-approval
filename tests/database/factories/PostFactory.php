@@ -18,4 +18,4 @@ class PostFactory extends Factory
             'user_id' => null,
         ];
     }
-} 
+}
