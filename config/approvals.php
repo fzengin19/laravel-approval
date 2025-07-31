@@ -45,7 +45,7 @@ return [
         'auto_pending_on_create' => false,     // Auto pending when model is created
         'show_only_approved_by_default' => false, // Is global scope active?
         'auto_scope' => true,                  // Automatically add global scope
-        
+
         // Event Settings
         'events_enabled' => true,              // Enable event system
         'events_logging' => true,              // Log events
@@ -71,7 +71,7 @@ return [
                 // Example: function($event) { /* custom logic */ }
             ],
         ],
-        
+
         // Rejection Settings
         'allow_custom_reasons' => false,       // Allow custom rejection reasons
         'rejection_reasons' => [
@@ -82,7 +82,7 @@ return [
             'other' => 'Other',
         ],
     ],
-    
+
     /*
     |--------------------------------------------------------------------------
     | Models Configuration

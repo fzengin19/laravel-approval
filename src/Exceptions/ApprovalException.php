@@ -9,8 +9,7 @@ class ApprovalException extends Exception
     /**
      * Create an exception for an invalid approval status.
      *
-     * @param string $status The invalid status.
-     * @return self
+     * @param  string  $status  The invalid status.
      */
     public static function invalidStatus(string $status): self
     {
@@ -20,8 +19,7 @@ class ApprovalException extends Exception
     /**
      * Create an exception for a model that cannot be found.
      *
-     * @param string $modelClass The class name of the model.
-     * @return self
+     * @param  string  $modelClass  The class name of the model.
      */
     public static function modelNotFound(string $modelClass): self
     {
@@ -31,8 +29,7 @@ class ApprovalException extends Exception
     /**
      * Create an exception for an approval record that cannot be found.
      *
-     * @param int $approvalId The ID of the approval.
-     * @return self
+     * @param  int  $approvalId  The ID of the approval.
      */
     public static function approvalNotFound(int $approvalId): self
     {
@@ -42,8 +39,7 @@ class ApprovalException extends Exception
     /**
      * Create an exception for an invalid rejection reason.
      *
-     * @param string $reason The invalid reason.
-     * @return self
+     * @param  string  $reason  The invalid reason.
      */
     public static function invalidRejectionReason(string $reason): self
     {
@@ -53,11 +49,10 @@ class ApprovalException extends Exception
     /**
      * Create an exception for a configuration error.
      *
-     * @param string $key The configuration key that is invalid.
-     * @return self
+     * @param  string  $key  The configuration key that is invalid.
      */
     public static function configurationError(string $key): self
     {
         return new self("Configuration error for key: {$key}");
     }
-} 
+}

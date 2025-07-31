@@ -2,8 +2,8 @@
 
 namespace LaravelApproval\Contracts;
 
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use LaravelApproval\Enums\ApprovalStatus;
 
@@ -57,8 +57,7 @@ interface ApprovableInterface
     /**
      * Get a specific approval configuration value for the model.
      *
-     * @param string $key
-     * @param mixed|null $default
+     * @param  mixed|null  $default
      * @return mixed
      */
     public function getApprovalConfig(string $key, $default = null);
@@ -87,4 +86,4 @@ interface ApprovableInterface
      * Scope a query to include unapproved models.
      */
     public function scopeWithUnapproved(Builder $query): Builder;
-} 
+}

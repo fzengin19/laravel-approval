@@ -2,9 +2,9 @@
 
 namespace LaravelApproval\Core;
 
-use LaravelApproval\Contracts\ApprovalValidatorInterface;
-use LaravelApproval\Contracts\ApprovableInterface;
 use Illuminate\Database\Eloquent\Model;
+use LaravelApproval\Contracts\ApprovableInterface;
+use LaravelApproval\Contracts\ApprovalValidatorInterface;
 
 class ApprovalValidator implements ApprovalValidatorInterface
 {
@@ -83,20 +83,20 @@ class ApprovalValidator implements ApprovalValidatorInterface
         $modelsConfig = config('approvals.models', []);
 
         // Check if model is configured
-        if (!isset($modelsConfig[$modelClass])) {
+        if (! isset($modelsConfig[$modelClass])) {
             return true; // Use defaults
         }
 
         $config = $modelsConfig[$modelClass];
 
         // Validate mode
-        if (isset($config['mode']) && !in_array($config['mode'], ['insert', 'upsert'])) {
+        if (isset($config['mode']) && ! in_array($config['mode'], ['insert', 'upsert'])) {
             return false;
         }
 
         // Validate rejection reasons
         if (isset($config['rejection_reasons'])) {
-            if (!is_array($config['rejection_reasons'])) {
+            if (! is_array($config['rejection_reasons'])) {
                 return false;
             }
             // Ensure it's an associative array [key => value]
@@ -104,17 +104,17 @@ class ApprovalValidator implements ApprovalValidatorInterface
                 return false;
             }
             foreach ($config['rejection_reasons'] as $key => $value) {
-                if (!is_string($key) || !is_string($value)) {
+                if (! is_string($key) || ! is_string($value)) {
                     return false;
                 }
             }
         }
 
         // Validate allow_custom_reasons
-        if (isset($config['allow_custom_reasons']) && !is_bool($config['allow_custom_reasons'])) {
+        if (isset($config['allow_custom_reasons']) && ! is_bool($config['allow_custom_reasons'])) {
             return false;
         }
 
         return true;
     }
-} 
+}

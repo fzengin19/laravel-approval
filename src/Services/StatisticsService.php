@@ -81,7 +81,7 @@ class StatisticsService implements StatisticsServiceInterface
         }
 
         $basicStats = $this->getStatistics($modelClass);
-        
+
         $latestApprovals = $modelClass::with('latestApproval')
             ->whereHas('latestApproval')
             ->orderBy('created_at', 'desc')
@@ -119,7 +119,7 @@ class StatisticsService implements StatisticsServiceInterface
         }
 
         $query = $modelClass::whereBetween('created_at', [$start, $end]);
-        
+
         $total = (clone $query)->count();
         $approved = (clone $query)->approved()->count();
         $pending = (clone $query)->pending()->count();
@@ -160,4 +160,4 @@ class StatisticsService implements StatisticsServiceInterface
 
         return round(($value / $total) * 100, 2);
     }
-} 
+}

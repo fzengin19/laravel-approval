@@ -2,9 +2,9 @@
 
 namespace LaravelApproval\Traits;
 
+use Illuminate\Database\Eloquent\Builder;
 use LaravelApproval\Enums\ApprovalStatus;
 use LaravelApproval\Scopes\ApprovableScope;
-use Illuminate\Database\Eloquent\Builder;
 
 trait ApprovalScopes
 {
@@ -65,4 +65,4 @@ trait ApprovalScopes
     {
         return $query->withoutGlobalScope(ApprovableScope::class);
     }
-} 
+}

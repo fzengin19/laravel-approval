@@ -9,10 +9,8 @@ use LaravelApproval\Core\ApprovalEventDispatcher;
 use LaravelApproval\Core\ApprovalRepository;
 use LaravelApproval\Core\ApprovalValidator;
 use LaravelApproval\Core\WebhookDispatcher;
-use LaravelApproval\LaravelApprovalServiceProvider;
 use LaravelApproval\Services\ApprovalService;
 use LaravelApproval\Services\StatisticsService;
-use Mockery\MockInterface;
 
 class LaravelApprovalServiceProviderTest extends TestCase
 {

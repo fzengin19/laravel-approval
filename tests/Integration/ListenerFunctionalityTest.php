@@ -68,4 +68,4 @@ test('it does not execute custom actions when not configured', function () {
     $post->approve(1);
 
     expect($customActionWasCalled)->toBeFalse();
-}); 
+});

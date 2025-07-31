@@ -9,9 +9,6 @@ trait ApprovalActions
     /**
      * Approve the model.
      *
-     * @param int|null $userId
-     * @param string|null $comment
-     * @return void
      *
      * @throws \LaravelApproval\Exceptions\InvalidApprovalStatusException
      * @throws \LaravelApproval\Exceptions\UnauthorizedApprovalException
@@ -24,10 +21,6 @@ trait ApprovalActions
     /**
      * Reject the model.
      *
-     * @param int|null $userId
-     * @param string|null $reason
-     * @param string|null $comment
-     * @return void
      *
      * @throws \LaravelApproval\Exceptions\InvalidApprovalStatusException
      * @throws \LaravelApproval\Exceptions\UnauthorizedApprovalException
@@ -40,9 +33,6 @@ trait ApprovalActions
     /**
      * Set the model to pending status.
      *
-     * @param int|null $userId
-     * @param string|null $comment
-     * @return void
      *
      * @throws \LaravelApproval\Exceptions\InvalidApprovalStatusException
      * @throws \LaravelApproval\Exceptions\UnauthorizedApprovalException
@@ -55,13 +45,13 @@ trait ApprovalActions
     /**
      * Get a specific approval configuration value for the model.
      *
-     * @param string $key
-     * @param mixed|null $default
+     * @param  mixed|null  $default
      * @return mixed
      */
     public function getApprovalConfig(string $key, $default = null)
     {
         $modelClass = static::class;
+
         return config("approvals.models.{$modelClass}.{$key}", config("approvals.default.{$key}", $default));
     }
-} 
+}

@@ -3,8 +3,8 @@
 namespace LaravelApproval\Listeners;
 
 use Illuminate\Support\Facades\Log;
-use LaravelApproval\Core\WebhookDispatcher;
 use LaravelApproval\Contracts\ApprovableInterface;
+use LaravelApproval\Core\WebhookDispatcher;
 
 abstract class BaseApprovalListener
 {
@@ -41,4 +41,4 @@ abstract class BaseApprovalListener
             }
         }
     }
-} 
+}

@@ -11,6 +11,7 @@ use Tests\Models\User;
 class ApprovalTest extends TestCase
 {
     private Post $post;
+
     private User $user;
 
     protected function setUp(): void

@@ -1,13 +1,13 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use LaravelApproval\Enums\ApprovalStatus;
-use Tests\Models\Post;
-use Illuminate\Support\Facades\Auth;
 use LaravelApproval\Events\ModelApproved;
 use LaravelApproval\Events\ModelApproving;
 use LaravelApproval\Events\ModelRejected;
 use LaravelApproval\Events\ModelRejecting;
+use Tests\Models\Post;
 use Tests\Models\User;
 
 beforeEach(function () {

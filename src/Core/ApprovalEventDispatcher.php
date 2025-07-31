@@ -64,4 +64,4 @@ class ApprovalEventDispatcher
 
         return config('approvals.default.events_enabled', true);
     }
-} 
+}

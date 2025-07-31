@@ -19,8 +19,6 @@ class ApprovableScope implements Scope
     /**
      * Apply the scope to a given Eloquent query builder.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
-     * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return void
      */
     public function apply(Builder $builder, Model $model)
@@ -43,7 +41,6 @@ class ApprovableScope implements Scope
     /**
      * Extend the query builder with the given extensions.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
      * @return void
      */
     public function extend(Builder $builder)
@@ -56,7 +53,6 @@ class ApprovableScope implements Scope
     /**
      * Add the with-unapproved extension to the builder.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
      * @return void
      */
     protected function addWithUnapproved(Builder $builder)
@@ -69,7 +65,6 @@ class ApprovableScope implements Scope
     /**
      * Add the only-unapproved extension to the builder.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
      * @return void
      */
     protected function addOnlyUnapproved(Builder $builder)
@@ -86,7 +81,6 @@ class ApprovableScope implements Scope
     /**
      * Add the only-approved extension to the builder.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
      * @return void
      */
     protected function addOnlyApproved(Builder $builder)
@@ -100,15 +94,13 @@ class ApprovableScope implements Scope
 
     /**
      * Check if the scope should be applied.
-     *
-     * @param \Illuminate\Database\Eloquent\Model $model
-     * @return bool
      */
     protected function shouldApplyScope(Model $model): bool
     {
         if (method_exists($model, 'getApprovalConfig')) {
             return $model->getApprovalConfig('show_only_approved_by_default', false);
         }
+
         return false;
     }
 }

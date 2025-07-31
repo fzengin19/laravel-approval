@@ -75,4 +75,4 @@ test('it returns empty detailed statistics for a model with no approvals', funct
 
     $this->assertIsArray($stats);
     $this->assertEmpty($stats);
-}); 
+});

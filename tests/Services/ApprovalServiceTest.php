@@ -1,7 +1,6 @@
 <?php
 
 use LaravelApproval\Services\ApprovalService;
-use LaravelApproval\Services\StatisticsService;
 use Tests\Models\Post;
 
 beforeEach(function () {
@@ -44,4 +43,4 @@ test('ApprovalService statistics methods', function () {
     expect($detailed)->toBeArray();
     $dateStats = $this->service->getStatisticsForDateRange(Post::class, now()->subDay()->toDateString(), now()->toDateString());
     expect($dateStats)->toHaveKeys(['total', 'approved', 'pending', 'rejected', 'approved_percentage', 'pending_percentage', 'rejected_percentage', 'date_range']);
-}); 
+});

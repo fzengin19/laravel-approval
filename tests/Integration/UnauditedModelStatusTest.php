@@ -21,7 +21,7 @@ test('unaudited model has null status by default', function () {
 
 test('approved scope does not include unaudited models when default is null', function () {
     Post::create(['title' => 'Test Post', 'content' => 'Test Content']);
-    
+
     expect(Post::approved()->count())->toBe(0);
 });
 
@@ -37,9 +37,9 @@ test('unaudited model is considered approved when configured', function () {
 
 test('approved scope includes unaudited models when configured', function () {
     Config::set('approvals.default.default_status_for_unaudited', 'approved');
-    
+
     Post::create(['title' => 'Test Post', 'content' => 'Test Content']);
-    
+
     // With global scope active, this might be tricky. Let's test the local scope.
     expect(Post::approved()->count())->toBe(1);
 });
@@ -56,12 +56,11 @@ test('unaudited model is considered pending when configured', function () {
 
 test('pending scope includes unaudited models when configured', function () {
     Config::set('approvals.default.default_status_for_unaudited', 'pending');
-    
+
     Post::create(['title' => 'Test Post', 'content' => 'Test Content']);
-    
+
     expect(Post::pending()->count())->toBe(1);
 });
-
 
 test('model-specific config overrides default unaudited status', function () {
     Config::set('approvals.default.default_status_for_unaudited', 'rejected');
@@ -79,4 +78,4 @@ test('model-specific config overrides default unaudited status', function () {
 
     expect(Post::approved()->count())->toBe(1);
     expect(Post::rejected()->count())->toBe(0);
-}); 
+});

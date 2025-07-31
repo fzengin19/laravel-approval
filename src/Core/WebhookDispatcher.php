@@ -11,7 +11,8 @@ class WebhookDispatcher
 {
     /**
      * Dispatch webhooks for an event.
-     * @param Model&ApprovableInterface $model
+     *
+     * @param  Model&ApprovableInterface  $model
      */
     public function dispatchWebhooks(string $eventName, ApprovableInterface $model, object $event): void
     {
@@ -39,17 +40,18 @@ class WebhookDispatcher
 
     /**
      * Send webhook to endpoint.
-     * @param Model&ApprovableInterface $model
+     *
+     * @param  Model&ApprovableInterface  $model
      */
     protected function sendWebhook(array $webhook, string $eventName, ApprovableInterface $model, object $event): void
     {
-        if (!$this->getModelWebhookConfig($model, 'enabled', false)) {
+        if (! $this->getModelWebhookConfig($model, 'enabled', false)) {
             return;
         }
 
         $payload = $this->buildWebhookPayload($eventName, $model, $event);
         $headers = $webhook['headers'] ?? [];
-        
+
         try {
             $response = Http::withHeaders($headers)
                 ->timeout(30)
@@ -70,7 +72,8 @@ class WebhookDispatcher
 
     /**
      * Build webhook payload.
-     * @param Model&ApprovableInterface $model
+     *
+     * @param  Model&ApprovableInterface  $model
      */
     protected function buildWebhookPayload(string $eventName, ApprovableInterface $model, object $event): array
     {
@@ -119,13 +122,12 @@ class WebhookDispatcher
     /**
      * Get a specific webhook configuration value for a model, falling back to defaults.
      *
-     * @param Model&ApprovableInterface $model
-     * @param string $key
-     * @param mixed|null $default
+     * @param  Model&ApprovableInterface  $model
+     * @param  mixed|null  $default
      * @return mixed
      */
     private function getModelWebhookConfig(ApprovableInterface $model, string $key, $default = null)
     {
         return $model->getApprovalConfig("events_webhooks_{$key}", $default);
     }
-} 
+}

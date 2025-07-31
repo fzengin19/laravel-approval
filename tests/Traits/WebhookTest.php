@@ -56,7 +56,6 @@ it('does not dispatch webhooks when webhooks are disabled', function () {
     Http::assertNothingSent();
 });
 
-
 it('respects model-specific webhook configuration', function () {
     Http::fake();
 
@@ -65,7 +64,7 @@ it('respects model-specific webhook configuration', function () {
         'approvals.default.events_webhooks_endpoints' => [
             ['url' => 'https://api.example.com/webhooks/default'],
         ],
-        'approvals.models.' . Post::class => [
+        'approvals.models.'.Post::class => [
             'events_webhooks_enabled' => true,
             'events_webhooks_endpoints' => [
                 ['url' => 'https://api.example.com/webhooks/post-approval'],
@@ -84,7 +83,6 @@ it('respects model-specific webhook configuration', function () {
     });
 });
 
-
 it('dispatches webhooks for all events when no specific events configured', function () {
     Http::fake();
 
@@ -94,7 +92,7 @@ it('dispatches webhooks for all events when no specific events configured', func
             ['url' => 'https://api.example.com/webhooks/all-events'],
         ],
     ]);
-    
+
     $post = Post::factory()->create();
     $post->approve(1);
     $post->reject(1, 'spam', 'This is spam');
@@ -114,7 +112,7 @@ it('dispatches webhooks for specific events only', function () {
             ],
         ],
     ]);
-    
+
     $post = Post::factory()->create();
     $post->approve(1);
     $post->reject(1, 'spam', 'This is spam');
@@ -150,6 +148,7 @@ it('includes approval data in webhook payload', function () {
 
     Http::assertSent(function ($request) use ($post) {
         $data = $request->data();
+
         return $data['event'] === 'model_rejected' &&
                $data['model_class'] === Post::class &&
                $data['model_id'] === $post->id &&
@@ -185,7 +184,7 @@ it('handles webhook failures gracefully', function () {
             && $log->context['event'] === 'model_approved'
             && str_contains($log->context['exception_message'], 'HTTP request returned status code 500');
     });
-}); 
+});
 
 it('dispatches webhook for model_setting_pending event', function () {
     Http::fake();
@@ -207,7 +206,7 @@ it('dispatches webhook for model_setting_pending event', function () {
         return $request->url() === 'https://api.example.com/webhooks/pending' &&
                $request['event'] === 'model_setting_pending';
     });
-}); 
+});
 
 it('includes correct data in model_approved webhook payload', function () {
     Http::fake();
@@ -227,13 +226,14 @@ it('includes correct data in model_approved webhook payload', function () {
 
     Http::assertSent(function ($request) use ($post) {
         $data = $request->data();
+
         return $data['event'] === 'model_approved' &&
                $data['model_class'] === Post::class &&
                $data['model_id'] === $post->id &&
                isset($data['timestamp']) &&
                $data['approval']['status'] === ApprovalStatus::APPROVED->value;
     });
-}); 
+});
 
 it('includes correct data in model_setting_pending webhook payload', function () {
     Http::fake();
@@ -253,13 +253,14 @@ it('includes correct data in model_setting_pending webhook payload', function ()
 
     Http::assertSent(function ($request) use ($post) {
         $data = $request->data();
+
         return $data['event'] === 'model_setting_pending' &&
                $data['model_class'] === Post::class &&
                $data['model_id'] === $post->id &&
                isset($data['timestamp']) &&
                $data['approval']['status'] === ApprovalStatus::PENDING->value;
     });
-}); 
+});
 
 it('handles webhook connection timeouts gracefully', function () {
     LogFake::bind();
@@ -287,4 +288,4 @@ it('handles webhook connection timeouts gracefully', function () {
             && $log->context['event'] === 'model_approved'
             && $log->context['exception_class'] === \Illuminate\Http\Client\ConnectionException::class;
     });
-}); 
+});

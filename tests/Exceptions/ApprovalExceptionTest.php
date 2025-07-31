@@ -29,13 +29,12 @@ test('InvalidApprovalStatusException invalidTransition static method creates cor
 test('InvalidApprovalStatusException invalidStatus static method creates correct message', function () {
     $exception = InvalidApprovalStatusException::invalidStatus('unknown');
 
-    $allowed = implode(', ', array_map(fn($case) => $case->value, ApprovalStatus::cases()));
+    $allowed = implode(', ', array_map(fn ($case) => $case->value, ApprovalStatus::cases()));
     $expectedMessage = "Unknown approval status: `unknown`. Allowed statuses are: {$allowed}.";
 
     expect($exception)->toBeInstanceOf(InvalidApprovalStatusException::class);
     expect($exception->getMessage())->toBe($expectedMessage);
 });
-
 
 test('UnauthorizedApprovalException static methods create correct instances', function () {
     $cannotApprove = UnauthorizedApprovalException::cannotApprove(1);
@@ -52,4 +51,4 @@ test('UnauthorizedApprovalException static methods create correct instances', fu
     expect($cannotSetPending)->toBeInstanceOf(UnauthorizedApprovalException::class)
         ->and($cannotSetPending->getMessage())->toContain('set pending')
         ->and($cannotSetPending->getMessage())->not->toContain('User ID');
-}); 
+});

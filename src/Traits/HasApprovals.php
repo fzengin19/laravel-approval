@@ -2,10 +2,10 @@
 
 namespace LaravelApproval\Traits;
 
-use LaravelApproval\Enums\ApprovalStatus;
-use LaravelApproval\Models\Approval;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use LaravelApproval\Enums\ApprovalStatus;
+use LaravelApproval\Models\Approval;
 
 trait HasApprovals
 {
@@ -63,4 +63,4 @@ trait HasApprovals
     {
         return $this->getApprovalStatus() === ApprovalStatus::REJECTED;
     }
-} 
+}

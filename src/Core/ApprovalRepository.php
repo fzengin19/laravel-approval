@@ -2,11 +2,11 @@
 
 namespace LaravelApproval\Core;
 
-use Illuminate\Support\Arr;
-use LaravelApproval\Contracts\ApprovalRepositoryInterface;
-use LaravelApproval\Contracts\ApprovableInterface;
-use LaravelApproval\Models\Approval;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Arr;
+use LaravelApproval\Contracts\ApprovableInterface;
+use LaravelApproval\Contracts\ApprovalRepositoryInterface;
+use LaravelApproval\Models\Approval;
 
 class ApprovalRepository implements ApprovalRepositoryInterface
 {
@@ -15,7 +15,7 @@ class ApprovalRepository implements ApprovalRepositoryInterface
      */
     public function create(ApprovableInterface $model, array $data): Approval
     {
-        $approval = new Approval();
+        $approval = new Approval;
         $approval->fill(Arr::except($data, ['caused_by_type', 'caused_by_id']));
 
         $approval->approvable()->associate($model);
@@ -39,10 +39,10 @@ class ApprovalRepository implements ApprovalRepositoryInterface
             'approvable_type' => $model->getMorphClass(),
             'approvable_id' => $model->getKey(),
         ];
-        
+
         $approval = Approval::firstOrNew($attributes);
         $approval->fill(Arr::except($data, ['caused_by_type', 'caused_by_id']));
-        
+
         if (isset($data['caused_by_type']) && isset($data['caused_by_id'])) {
             $approval->caused_by_type = $data['caused_by_type'];
             $approval->caused_by_id = $data['caused_by_id'];
@@ -76,4 +76,4 @@ class ApprovalRepository implements ApprovalRepositoryInterface
     {
         $model->approvals()->delete();
     }
-} 
+}

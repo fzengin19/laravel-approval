@@ -4,7 +4,7 @@ use LaravelApproval\Events\ModelRejecting;
 use Tests\Models\Post;
 
 beforeEach(function () {
-    $this->post = new Post();
+    $this->post = new Post;
 });
 
 it('can create ModelRejecting event', function () {
@@ -18,7 +18,7 @@ it('can create ModelRejecting event', function () {
 
 it('can handle null reason and comment', function () {
     $event = new ModelRejecting($this->post, 1, null, null);
-    
+
     expect($event->reason)->toBeNull();
     expect($event->comment)->toBeNull();
 });
@@ -30,4 +30,4 @@ it('can get context and metadata', function () {
 
     expect($event->context)->toBe($context);
     expect($event->metadata)->toBe($metadata);
-}); 
+});

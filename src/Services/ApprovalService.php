@@ -2,15 +2,14 @@
 
 namespace LaravelApproval\Services;
 
-use LaravelApproval\Contracts\StatisticsServiceInterface;
 use LaravelApproval\Contracts\ApprovableInterface;
+use LaravelApproval\Contracts\StatisticsServiceInterface;
 
 class ApprovalService
 {
     public function __construct(
         protected StatisticsServiceInterface $statisticsService
-    ) {
-    }
+    ) {}
 
     /**
      * Approve a model.

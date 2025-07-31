@@ -1,6 +1,5 @@
 <?php
 
-use LaravelApproval\Models\Approval;
 use Tests\Models\Post;
 
 beforeEach(function () {
@@ -60,7 +59,7 @@ it('can scope with approval status', function () {
     $posts = Post::withApprovalStatus()->get();
 
     expect($posts)->toHaveCount(3);
-    
+
     // Check that latestApproval relationship is loaded
     foreach ($posts as $post) {
         expect($post->relationLoaded('latestApproval'))->toBeTrue();

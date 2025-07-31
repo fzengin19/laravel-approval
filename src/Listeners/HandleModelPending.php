@@ -18,4 +18,4 @@ class HandleModelPending extends BaseApprovalListener
         $this->dispatchWebhooks($eventName, $model, $event);
         $this->executeCustomActions($eventName, $model, $event);
     }
-} 
+}

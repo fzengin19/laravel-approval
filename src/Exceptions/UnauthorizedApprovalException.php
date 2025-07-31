@@ -8,8 +8,8 @@ class UnauthorizedApprovalException extends ApprovalException
      * Create a new unauthorized approval exception instance.
      * This constructor is protected to enforce the use of static factory methods.
      *
-     * @param string $action The action that was not authorized (e.g., 'approve', 'reject').
-     * @param int|null $userId The ID of the user who performed the unauthorized action.
+     * @param  string  $action  The action that was not authorized (e.g., 'approve', 'reject').
+     * @param  int|null  $userId  The ID of the user who performed the unauthorized action.
      */
     protected function __construct(string $action, ?int $userId = null)
     {
@@ -17,15 +17,14 @@ class UnauthorizedApprovalException extends ApprovalException
         if ($userId) {
             $message .= " (User ID: {$userId})";
         }
-        
+
         parent::__construct($message);
     }
 
     /**
      * Create an exception for an unauthorized 'approve' action.
      *
-     * @param int|null $userId The ID of the user.
-     * @return self
+     * @param  int|null  $userId  The ID of the user.
      */
     public static function cannotApprove(?int $userId = null): self
     {
@@ -35,8 +34,7 @@ class UnauthorizedApprovalException extends ApprovalException
     /**
      * Create an exception for an unauthorized 'reject' action.
      *
-     * @param int|null $userId The ID of the user.
-     * @return self
+     * @param  int|null  $userId  The ID of the user.
      */
     public static function cannotReject(?int $userId = null): self
     {
@@ -46,11 +44,10 @@ class UnauthorizedApprovalException extends ApprovalException
     /**
      * Create an exception for an unauthorized 'set pending' action.
      *
-     * @param int|null $userId The ID of the user.
-     * @return self
+     * @param  int|null  $userId  The ID of the user.
      */
     public static function cannotSetPending(?int $userId = null): self
     {
         return new self('set pending', $userId);
     }
-} 
+}

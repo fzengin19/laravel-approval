@@ -12,7 +12,9 @@ use Tests\Models\User;
 class ApprovalRepositoryTest extends TestCase
 {
     private ApprovalRepository $repo;
+
     private Post $post;
+
     private User $user;
 
     protected function setUp(): void
@@ -24,7 +26,7 @@ class ApprovalRepositoryTest extends TestCase
     }
 
     /** @test */
-    public function it_can_create_and_updateOrCreate_approvals()
+    public function it_can_create_and_update_or_create_approvals()
     {
         $data = [
             'status' => ApprovalStatus::PENDING,
@@ -58,4 +60,4 @@ class ApprovalRepositoryTest extends TestCase
         $this->assertInstanceOf(Approval::class, $latest);
         $this->assertEquals(ApprovalStatus::APPROVED, $latest->status);
     }
-} 
+}

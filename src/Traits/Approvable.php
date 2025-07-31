@@ -6,7 +6,7 @@ use LaravelApproval\Scopes\ApprovableScope;
 
 trait Approvable
 {
-    use HasApprovals, ApprovalScopes, ApprovalActions;
+    use ApprovalActions, ApprovalScopes, HasApprovals;
 
     /**
      * Boot the trait.

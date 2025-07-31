@@ -25,4 +25,4 @@ class ApprovalFactory extends Factory
             'responded_at' => $this->faker->optional()->dateTime(),
         ];
     }
-} 
+}

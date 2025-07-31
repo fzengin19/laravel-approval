@@ -1,20 +1,19 @@
 <?php
 
-use LaravelApproval\Core\ApprovalManager;
 use LaravelApproval\Contracts\ApprovalRepositoryInterface;
 use LaravelApproval\Contracts\ApprovalValidatorInterface;
 use LaravelApproval\Core\ApprovalEventDispatcher;
+use LaravelApproval\Core\ApprovalManager;
 use LaravelApproval\Exceptions\UnauthorizedApprovalException;
 use LaravelApproval\Models\Approval;
 use Tests\Models\Post;
-use LaravelApproval\Contracts\ApprovableInterface;
 
 beforeEach(function () {
     $this->repository = Mockery::mock(ApprovalRepositoryInterface::class);
     $this->validator = Mockery::mock(ApprovalValidatorInterface::class);
     $this->eventDispatcher = Mockery::mock(ApprovalEventDispatcher::class);
     $this->manager = new ApprovalManager($this->repository, $this->validator, $this->eventDispatcher);
-    
+
     $this->post = Post::create(['title' => 'Test Post', 'content' => 'Content']);
     $this->approval = new Approval(['status' => 'approved', 'caused_by' => 1]);
 
@@ -51,7 +50,6 @@ it('sets a model to pending correctly', function () {
     $this->manager->setPending($this->post, 1);
 });
 
-
 it('returns early when validation fails for approval', function () {
     $validator = Mockery::mock(ApprovalValidatorInterface::class);
     $repository = Mockery::mock(ApprovalRepositoryInterface::class);
@@ -62,7 +60,7 @@ it('returns early when validation fails for approval', function () {
     $validator->shouldReceive('validateApproval')->andReturn(false);
 
     $this->expectException(UnauthorizedApprovalException::class);
-    
+
     $manager->approve($this->post, 1);
 
     $eventDispatcher->shouldNotHaveReceived('dispatchApproving');
@@ -71,11 +69,11 @@ it('returns early when validation fails for approval', function () {
 
 it('uses upsert mode when configured', function () {
     config()->set('approvals.default.mode', 'upsert');
-    
+
     $this->eventDispatcher->shouldReceive('dispatchApproving')->once();
     $this->repository->shouldReceive('updateOrCreate')->once()->andReturn($this->approval);
     $this->eventDispatcher->shouldReceive('dispatchApproved')->once();
-    
+
     $this->manager->approve($this->post, 1);
 });
 
@@ -85,6 +83,6 @@ it('uses insert mode when configured', function () {
     $this->eventDispatcher->shouldReceive('dispatchApproving')->once();
     $this->repository->shouldReceive('create')->once()->andReturn($this->approval);
     $this->eventDispatcher->shouldReceive('dispatchApproved')->once();
-    
+
     $this->manager->approve($this->post, 1);
-}); 
+});

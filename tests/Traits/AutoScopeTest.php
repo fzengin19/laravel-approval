@@ -1,6 +1,5 @@
 <?php
 
-
 use Tests\Models\Post;
 
 // Test için Post modelini Approvable trait'i ile genişlet

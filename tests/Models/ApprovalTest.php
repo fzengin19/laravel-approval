@@ -2,7 +2,6 @@
 
 namespace LaravelApproval\Tests\Models;
 
-use Illuminate\Database\Eloquent\MassAssignmentException;
 use Illuminate\Support\Carbon;
 use LaravelApproval\Enums\ApprovalStatus;
 use LaravelApproval\Models\Approval;
@@ -13,6 +12,7 @@ use Tests\Models\User;
 class ApprovalTest extends TestCase
 {
     private Post $post;
+
     private User $user;
 
     protected function setUp(): void
@@ -25,7 +25,7 @@ class ApprovalTest extends TestCase
     /** @test */
     public function it_can_be_created_with_valid_data()
     {
-        $approval = new Approval();
+        $approval = new Approval;
         $approval->fill([
             'status' => ApprovalStatus::PENDING,
         ]);
@@ -63,7 +63,7 @@ class ApprovalTest extends TestCase
     /** @test */
     public function it_protects_against_mass_assignment()
     {
-        $approval = new Approval();
+        $approval = new Approval;
 
         $this->assertTrue($approval->isFillable('status'));
         $this->assertFalse($approval->isFillable('caused_by_id'));

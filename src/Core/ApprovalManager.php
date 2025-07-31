@@ -14,7 +14,9 @@ use LaravelApproval\Models\Approval;
 class ApprovalManager
 {
     protected ApprovalRepositoryInterface $repository;
+
     protected ApprovalValidatorInterface $validator;
+
     protected ApprovalEventDispatcher $eventDispatcher;
 
     public function __construct(
@@ -31,11 +33,11 @@ class ApprovalManager
     {
         $causer = $this->getCauser($userId);
 
-        if (!$this->validator->canApprove($model, $causer?->id)) {
+        if (! $this->validator->canApprove($model, $causer?->id)) {
             throw UnauthorizedApprovalException::cannotApprove($causer?->id);
         }
 
-        if (!$this->validator->validateApproval($model, $causer?->id)) {
+        if (! $this->validator->validateApproval($model, $causer?->id)) {
             throw UnauthorizedApprovalException::cannotApprove($causer?->id);
         }
 
@@ -57,11 +59,11 @@ class ApprovalManager
     {
         $causer = $this->getCauser($userId);
 
-        if (!$this->validator->canReject($model, $causer?->id)) {
+        if (! $this->validator->canReject($model, $causer?->id)) {
             throw UnauthorizedApprovalException::cannotReject($causer?->id);
         }
 
-        if (!$this->validator->validateRejection($model, $causer?->id, $reason)) {
+        if (! $this->validator->validateRejection($model, $causer?->id, $reason)) {
             throw UnauthorizedApprovalException::cannotReject($causer?->id);
         }
 
@@ -84,11 +86,11 @@ class ApprovalManager
     {
         $causer = $this->getCauser($userId);
 
-        if (!$this->validator->canSetPending($model, $causer?->id)) {
+        if (! $this->validator->canSetPending($model, $causer?->id)) {
             throw UnauthorizedApprovalException::cannotSetPending($causer?->id);
         }
 
-        if (!$this->validator->validatePending($model, $causer?->id)) {
+        if (! $this->validator->validatePending($model, $causer?->id)) {
             throw UnauthorizedApprovalException::cannotSetPending($causer?->id);
         }
         $data = [
@@ -131,7 +133,7 @@ class ApprovalManager
 
         $userModelClass = config('approvals.user_model');
 
-        if ($userModelClass === null || !class_exists($userModelClass)) {
+        if ($userModelClass === null || ! class_exists($userModelClass)) {
             return null;
         }
 
@@ -164,7 +166,7 @@ class ApprovalManager
 
         $finalComment = $reason;
         if ($comment) {
-            $finalComment = !empty($reason) ? "{$reason} - {$comment}" : $comment;
+            $finalComment = ! empty($reason) ? "{$reason} - {$comment}" : $comment;
         }
 
         return [

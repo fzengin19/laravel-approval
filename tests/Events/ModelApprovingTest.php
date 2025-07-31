@@ -4,7 +4,7 @@ use LaravelApproval\Events\ModelApproving;
 use Tests\Models\Post;
 
 beforeEach(function () {
-    $this->post = new Post();
+    $this->post = new Post;
 });
 
 it('can create ModelApproving event', function () {
@@ -17,7 +17,7 @@ it('can create ModelApproving event', function () {
 
 it('can handle null comment', function () {
     $event = new ModelApproving($this->post, 1, null);
-    
+
     expect($event->comment)->toBeNull();
 });
 
@@ -28,4 +28,4 @@ it('can get context and metadata', function () {
 
     expect($event->context)->toBe($context);
     expect($event->metadata)->toBe($metadata);
-}); 
+});
