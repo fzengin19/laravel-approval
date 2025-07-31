@@ -105,7 +105,7 @@ That's it! Your model now has full approval functionality. 🎉
 ### Requirements
 
 - PHP 8.1 or higher
-- Laravel 9.0, 10.0, or 11.0
+- Laravel 9 or higher
 
 ### Install via Composer
 
