@@ -5,11 +5,17 @@ namespace LaravelApproval\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static \LaravelApproval\Models\Approval approve(\Illuminate\Database\Eloquent\Model $model, ?int $causedBy = null)
- * @method static \LaravelApproval\Models\Approval reject(\Illuminate\Database\Eloquent\Model $model, ?int $causedBy = null, ?string $reason = null, ?string $comment = null)
- * @method static \LaravelApproval\Models\Approval setPending(\Illuminate\Database\Eloquent\Model $model, ?int $causedBy = null)
+ * @method static void approve(\LaravelApproval\Contracts\ApprovableInterface $model, ?int $userId = null, ?string $comment = null)
+ * @method static void reject(\LaravelApproval\Contracts\ApprovableInterface $model, ?int $userId = null, ?string $reason = null, ?string $comment = null)
+ * @method static void setPending(\LaravelApproval\Contracts\ApprovableInterface $model, ?int $userId = null, ?string $comment = null)
  * @method static array getStatistics(string $modelClass)
  * @method static array getAllStatistics()
+ * @method static array getModelStatistics(\LaravelApproval\Contracts\ApprovableInterface $model)
+ * @method static float getApprovalPercentage(string $modelClass)
+ * @method static float getRejectionPercentage(string $modelClass)
+ * @method static float getPendingPercentage(string $modelClass)
+ * @method static array getDetailedStatistics(string $modelClass)
+ * @method static array getStatisticsForDateRange(string $modelClass, string $startDate, string $endDate)
  *
  * @see \LaravelApproval\Services\ApprovalService
  */

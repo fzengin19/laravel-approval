@@ -1,58 +1,49 @@
 <?php
 
+use LaravelApproval\Enums\ApprovalStatus;
 use LaravelApproval\Models\Approval;
-use LaravelApproval\Traits\Approvable;
 use Tests\Models\Post;
+use Tests\Models\User;
 
 // Test için Post modelini Approvable trait'i ile genişlet
-class GlobalScopeTestPost extends Post
-{
-    use Approvable;
-
-    protected $table = 'posts';
-}
 
 beforeEach(function () {
-    // Create approved post
-    $approvedPost = GlobalScopeTestPost::create([
-        'title' => 'Approved Post',
-        'content' => 'Content',
-    ]);
+    $user = User::factory()->create();
 
-    Approval::create([
-        'approvable_type' => GlobalScopeTestPost::class,
+    // Create approved post
+    $approvedPost = Post::factory()->create();
+    Approval::factory()->create([
+        'approvable_type' => $approvedPost->getMorphClass(),
         'approvable_id' => $approvedPost->id,
-        'status' => 'approved',
-        'caused_by' => 1,
+        'status' => ApprovalStatus::APPROVED,
+        'caused_by_type' => $user->getMorphClass(),
+        'caused_by_id' => $user->id,
     ]);
 
     // Create pending post
-    $pendingPost = GlobalScopeTestPost::create([
-        'title' => 'Pending Post',
-        'content' => 'Content',
-    ]);
-
-    Approval::create([
-        'approvable_type' => GlobalScopeTestPost::class,
+    $pendingPost = Post::factory()->create();
+    Approval::factory()->create([
+        'approvable_type' => $pendingPost->getMorphClass(),
         'approvable_id' => $pendingPost->id,
-        'status' => 'pending',
-        'caused_by' => 1,
+        'status' => ApprovalStatus::PENDING,
+        'caused_by_type' => $user->getMorphClass(),
+        'caused_by_id' => $user->id,
     ]);
 });
 
 it('shows only approved posts when show_only_approved_by_default is true', function () {
     config(['approvals.default.show_only_approved_by_default' => true]);
 
-    $posts = GlobalScopeTestPost::all();
+    $posts = Post::all();
 
     expect($posts)->toHaveCount(1);
-    expect($posts->first()->title)->toBe('Approved Post');
+    expect($posts->first()->isApproved())->toBeTrue();
 });
 
 it('shows all posts when show_only_approved_by_default is false', function () {
     config(['approvals.default.show_only_approved_by_default' => false]);
 
-    $posts = GlobalScopeTestPost::all();
+    $posts = Post::all();
 
     expect($posts)->toHaveCount(2);
 });
@@ -60,7 +51,7 @@ it('shows all posts when show_only_approved_by_default is false', function () {
 it('can include unapproved posts with withUnapproved scope', function () {
     config(['approvals.default.show_only_approved_by_default' => true]);
 
-    $posts = GlobalScopeTestPost::withUnapproved()->get();
+    $posts = Post::withUnapproved()->get();
 
     expect($posts)->toHaveCount(2);
 });
@@ -69,14 +60,14 @@ it('uses model-specific config for show_only_approved_by_default', function () {
     config([
         'approvals.default.show_only_approved_by_default' => false,
         'approvals.models' => [
-            GlobalScopeTestPost::class => [
+            Post::class => [
                 'show_only_approved_by_default' => true,
             ],
         ],
     ]);
 
-    $posts = GlobalScopeTestPost::all();
+    $posts = Post::all();
 
     expect($posts)->toHaveCount(1);
-    expect($posts->first()->title)->toBe('Approved Post');
+    expect($posts->first()->isApproved())->toBeTrue();
 });

@@ -2,61 +2,77 @@
 
 namespace LaravelApproval\Tests;
 
+use LaravelApproval\Contracts\ApprovalRepositoryInterface;
+use LaravelApproval\Contracts\ApprovalValidatorInterface;
+use LaravelApproval\Contracts\StatisticsServiceInterface;
+use LaravelApproval\Core\ApprovalEventDispatcher;
+use LaravelApproval\Core\ApprovalRepository;
+use LaravelApproval\Core\ApprovalValidator;
+use LaravelApproval\Core\WebhookDispatcher;
 use LaravelApproval\LaravelApprovalServiceProvider;
 use LaravelApproval\Services\ApprovalService;
-use Tests\Models\Post;
-use Tests\Models\User;
+use LaravelApproval\Services\StatisticsService;
+use Mockery\MockInterface;
 
 class LaravelApprovalServiceProviderTest extends TestCase
 {
-    public function test_service_provider_registers_approval_service()
+    /** @test */
+    public function it_registers_the_main_approval_service_as_a_singleton()
     {
         $this->assertInstanceOf(
             ApprovalService::class,
-            app('laravel-approval')
+            $this->app->get('laravel-approval')
+        );
+
+        $this->assertSame(
+            $this->app->get('laravel-approval'),
+            $this->app->get('laravel-approval')
         );
     }
 
-    public function test_service_provider_registers_approval_service_as_singleton()
+    /** @test */
+    public function it_binds_interfaces_to_their_concrete_implementations()
     {
-        $service1 = app('laravel-approval');
-        $service2 = app('laravel-approval');
+        $this->assertInstanceOf(
+            ApprovalRepository::class,
+            $this->app->get(ApprovalRepositoryInterface::class)
+        );
 
-        $this->assertSame($service1, $service2);
+        $this->assertInstanceOf(
+            ApprovalValidator::class,
+            $this->app->get(ApprovalValidatorInterface::class)
+        );
+
+        $this->assertInstanceOf(
+            StatisticsService::class,
+            $this->app->get(StatisticsServiceInterface::class)
+        );
     }
 
-    public function test_service_provider_registers_event_listeners_when_notifications_enabled()
+    /** @test */
+    public function it_registers_core_components_as_singletons()
     {
-        config(['approvals.features.notifications.enabled' => true]);
-        config(['approvals.features.notifications.mail.enabled' => true]);
+        $this->assertSame(
+            $this->app->get(ApprovalEventDispatcher::class),
+            $this->app->get(ApprovalEventDispatcher::class)
+        );
 
-        // Service provider'ı yeniden boot et
-        $provider = new LaravelApprovalServiceProvider($this->app);
-        $provider->packageBooted();
-
-        $user = User::factory()->create();
-        $post = Post::factory()->create(['created_by' => $user->id]);
-
-        // Event listener'ların çalıştığını test et
-        $this->assertNotNull($post->approve(1));
-        $this->assertNotNull($post->reject(1, 'spam'));
-        $this->assertNotNull($post->setPending(1));
+        $this->assertSame(
+            $this->app->get(WebhookDispatcher::class),
+            $this->app->get(WebhookDispatcher::class)
+        );
     }
 
-    public function test_service_provider_does_not_register_event_listeners_when_notifications_disabled()
+    /** @test */
+    public function it_registers_event_listeners_correctly()
     {
-        config(['approvals.features.notifications.enabled' => false]);
+        $dispatcher = $this->app->get('events');
 
-        // Service provider'ı yeniden boot et
-        $provider = new LaravelApprovalServiceProvider($this->app);
-        $provider->packageBooted();
-
-        $user = User::factory()->create();
-        $post = Post::factory()->create(['created_by' => $user->id]);
-
-        // Event listener'ların çalışmadığını test et (notification gönderilmemeli)
-        $this->assertNotNull($post->approve(1));
-        $this->assertNotNull($post->reject(1, 'spam'));
-        $this->assertNotNull($post->setPending(1));
+        $this->assertTrue($dispatcher->hasListeners(\LaravelApproval\Events\ModelApproved::class));
+        $this->assertTrue($dispatcher->hasListeners(\LaravelApproval\Events\ModelRejected::class));
+        $this->assertTrue($dispatcher->hasListeners(\LaravelApproval\Events\ModelPending::class));
+        $this->assertTrue($dispatcher->hasListeners(\LaravelApproval\Events\ModelApproving::class));
+        $this->assertTrue($dispatcher->hasListeners(\LaravelApproval\Events\ModelRejecting::class));
+        $this->assertTrue($dispatcher->hasListeners(\LaravelApproval\Events\ModelSettingPending::class));
     }
 }

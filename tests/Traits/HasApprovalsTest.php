@@ -1,76 +1,39 @@
 <?php
 
+use LaravelApproval\Enums\ApprovalStatus;
 use LaravelApproval\Models\Approval;
-use LaravelApproval\Traits\Approvable;
 use Tests\Models\Post;
-
-// Test için Post modelini Approvable trait'i ile genişlet
-class TestPost extends Post
-{
-    use Approvable;
-
-    protected $table = 'posts';
-}
+use Tests\Models\User;
 
 beforeEach(function () {
-    $this->post = TestPost::create([
-        'title' => 'Test Post',
-        'content' => 'Test Content',
-    ]);
+    $this->post = Post::factory()->create();
+    $this->user = User::factory()->create();
 });
 
 it('can access approvals relationship', function () {
-    // 3 farklı approval kaydı oluştur
-    Approval::create([
-        'approvable_type' => TestPost::class,
+    Approval::factory()->count(3)->create([
+        'approvable_type' => $this->post->getMorphClass(),
         'approvable_id' => $this->post->id,
-        'status' => 'pending',
-        'caused_by' => 1,
-    ]);
-
-    Approval::create([
-        'approvable_type' => TestPost::class,
-        'approvable_id' => $this->post->id,
-        'status' => 'approved',
-        'caused_by' => 1,
-    ]);
-
-    Approval::create([
-        'approvable_type' => TestPost::class,
-        'approvable_id' => $this->post->id,
-        'status' => 'rejected',
-        'caused_by' => 1,
     ]);
 
     expect($this->post->approvals()->count())->toBe(3);
 });
 
 it('can access latest approval relationship', function () {
-    // İlk approval
-    $firstApproval = Approval::create([
-        'approvable_type' => TestPost::class,
+    Approval::factory()->create([
         'approvable_id' => $this->post->id,
-        'status' => 'pending',
-        'caused_by' => 1,
+        'approvable_type' => $this->post->getMorphClass(),
+        'created_at' => now()->subDay(),
     ]);
 
-    // İkinci approval (daha yeni)
-    $secondApproval = Approval::create([
-        'approvable_type' => TestPost::class,
+    $latestApproval = Approval::factory()->create([
         'approvable_id' => $this->post->id,
-        'status' => 'approved',
-        'caused_by' => 1,
-    ]);
-
-    // En son approval (en yeni)
-    $latestApproval = Approval::create([
-        'approvable_type' => TestPost::class,
-        'approvable_id' => $this->post->id,
-        'status' => 'rejected',
-        'caused_by' => 1,
+        'approvable_type' => $this->post->getMorphClass(),
+        'status' => ApprovalStatus::REJECTED,
+        'created_at' => now(),
     ]);
 
     expect($this->post->latestApproval)->toBeInstanceOf(Approval::class);
     expect($this->post->latestApproval->id)->toBe($latestApproval->id);
-    expect($this->post->latestApproval->status)->toBe('rejected');
+    expect($this->post->latestApproval->status)->toBe(ApprovalStatus::REJECTED);
 });

@@ -1,72 +1,71 @@
 <?php
 
 use Illuminate\Support\Facades\Auth;
-use LaravelApproval\Models\Approval;
-use LaravelApproval\Traits\Approvable;
+use LaravelApproval\Enums\ApprovalStatus;
 use Tests\Models\Post;
-
-// Test için Post modelini Approvable trait'i ile genişlet
-class SetPendingTestPost extends Post
-{
-    use Approvable;
-
-    protected $table = 'posts';
-}
+use Tests\Models\User;
 
 beforeEach(function () {
-    $this->post = SetPendingTestPost::create([
-        'title' => 'Test Post',
-        'content' => 'Test Content',
-    ]);
+    $this->post = Post::factory()->create();
+    $this->user = User::factory()->create();
+    $this->anotherUser = User::factory()->create();
 });
 
 it('creates new approval record in insert mode', function () {
     config(['approvals.default.mode' => 'insert']);
 
-    $approval = $this->post->setPending(1);
+    $this->post->setPending($this->user->id);
 
-    expect($approval)->toBeInstanceOf(Approval::class);
-    expect($approval->status)->toBe('pending');
-    expect($approval->caused_by)->toBe(1);
-    expect($approval->responded_at)->not->toBeNull();
+    expect($this->post->isPending())->toBeTrue();
+    $this->assertDatabaseHas('approvals', [
+        'approvable_id' => $this->post->id,
+        'status' => ApprovalStatus::PENDING->value,
+        'caused_by_id' => $this->user->id,
+        'caused_by_type' => $this->user->getMorphClass(),
+    ]);
+    $firstApprovalId = $this->post->latestApproval->id;
 
-    // İkinci kez çağrıldığında yeni kayıt oluşturmalı
-    $secondApproval = $this->post->setPending(2);
-    expect($secondApproval->id)->not->toBe($approval->id);
+    // A second call should create a new record
+    $this->post->setPending($this->anotherUser->id);
+
+    $this->post->refresh();
+
     expect($this->post->approvals()->count())->toBe(2);
+    expect($this->post->latestApproval->id)->not->toBe($firstApprovalId);
 });
 
 it('updates existing approval record in upsert mode', function () {
     config(['approvals.default.mode' => 'upsert']);
 
-    $approval = $this->post->setPending(1);
+    $this->post->setPending($this->user->id);
 
-    expect($approval)->toBeInstanceOf(Approval::class);
-    expect($approval->status)->toBe('pending');
-    expect($approval->caused_by)->toBe(1);
+    expect($this->post->isPending())->toBeTrue();
+    $firstApprovalId = $this->post->latestApproval->id;
+    $this->assertDatabaseHas('approvals', [
+        'id' => $firstApprovalId,
+        'caused_by_id' => $this->user->id,
+    ]);
 
-    // İkinci kez çağrıldığında mevcut kaydı güncellemeli
-    $secondApproval = $this->post->setPending(2);
-    expect($secondApproval->id)->toBe($approval->id);
-    expect($secondApproval->caused_by)->toBe(2);
+    // A second call should update the existing record
+    $this->post->setPending($this->anotherUser->id);
     expect($this->post->approvals()->count())->toBe(1);
+    expect($this->post->latestApproval->id)->toBe($firstApprovalId);
+    $this->assertDatabaseHas('approvals', [
+        'id' => $firstApprovalId,
+        'caused_by_id' => $this->anotherUser->id,
+    ]);
 });
 
 it('uses authenticated user id when caused_by is null', function () {
     config(['approvals.default.mode' => 'insert']);
+    Auth::login($this->user);
 
-    // Mock authenticated user
-    $user = new class
-    {
-        public function getAuthIdentifier()
-        {
-            return 123;
-        }
-    };
+    $this->post->setPending();
 
-    Auth::shouldReceive('id')->andReturn(123);
-
-    $approval = $this->post->setPending();
-
-    expect($approval->caused_by)->toBe(123);
+    expect($this->post->isPending())->toBeTrue();
+    $this->assertDatabaseHas('approvals', [
+        'approvable_id' => $this->post->id,
+        'caused_by_id' => $this->user->id,
+        'caused_by_type' => $this->user->getMorphClass(),
+    ]);
 });

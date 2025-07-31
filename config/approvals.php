@@ -1,74 +1,95 @@
 <?php
 
 return [
+
     /*
     |--------------------------------------------------------------------------
-    | Default Configuration
+    | User Model
     |--------------------------------------------------------------------------
     |
-    | This section contains the default settings for the package.
+    | When an approval action is performed without specifying a user, the
+    | currently authenticated user is used. This model will be used to
+    | retrieve the user from the database.
+    |
+    */
+
+    'user_model' => config('auth.providers.users.model'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Approval Settings
+    |--------------------------------------------------------------------------
+    |
+    | This option controls the default approval settings for all models.
+    | You can override these settings for specific models below.
     |
     */
     'default' => [
-        /*
-        |--------------------------------------------------------------------------
-        | Mode
-        |--------------------------------------------------------------------------
-        |
-        | Determines how approval records are created:
-        | - 'insert': Creates a new record for each status change
-        | - 'upsert': Updates existing record or creates new record
-        |
-        */
-        'mode' => env('APPROVAL_MODE', 'insert'),
 
-        /*
-        |--------------------------------------------------------------------------
-        | Auto Pending on Create
-        |--------------------------------------------------------------------------
-        |
-        | Whether to automatically set to pending status when model is created.
-        |
-        */
-        'auto_pending_on_create' => env('APPROVAL_AUTO_PENDING_ON_CREATE', false),
+        // Determines the behavior for models that have no approval record.
+        // - null (default): The model has no specific status. It won't appear
+        //   in queries for approved, pending, or rejected models. This is the
+        //   safest and recommended default.
+        // - 'approved': Treat as approved. The model will appear in `approved()`
+        //   queries. This mimics the old behavior for backward compatibility.
+        // - 'pending': Treat as pending.
+        // - 'rejected': Treat as rejected.
+        'default_status_for_unaudited' => null,
 
-        /*
-        |--------------------------------------------------------------------------
-        | Show Only Approved by Default
-        |--------------------------------------------------------------------------
-        |
-        | Whether global scope shows only approved records by default.
-        |
-        */
-        'show_only_approved_by_default' => env('APPROVAL_SHOW_ONLY_APPROVED_BY_DEFAULT', false),
-
-        /*
-        |--------------------------------------------------------------------------
-        | Auto Scope
-        |--------------------------------------------------------------------------
-        |
-        | Whether to automatically add global scope to models using Approvable trait.
-        |
-        */
-        'auto_scope' => env('APPROVAL_AUTO_SCOPE', true),
-
-        /*
-        |--------------------------------------------------------------------------
-        | Events
-        |--------------------------------------------------------------------------
-        |
-        | Whether to trigger events on status changes.
-        |
-        */
-        'events' => env('APPROVAL_EVENTS', true),
+        // The mode for storing approval records.
+        // - 'insert': Creates a new record for each approval action (recommended
+        //   for audit trails).
+        // - 'upsert': Updates the existing record for the model. Keeps only the
+        //   latest status.
+        'mode' => 'insert',
+        'auto_pending_on_create' => false,     // Auto pending when model is created
+        'show_only_approved_by_default' => false, // Is global scope active?
+        'auto_scope' => true,                  // Automatically add global scope
+        
+        // Event Settings
+        'events_enabled' => true,              // Enable event system
+        'events_logging' => true,              // Log events
+        'events_webhooks_enabled' => false,    // Enable webhooks
+        'events_webhooks_endpoints' => [],     // Webhook endpoints
+        'events_custom_actions' => [           // Custom event actions
+            'model_approved' => [
+                // Example: function($event) { /* custom logic */ }
+            ],
+            'model_rejected' => [
+                // Example: function($event) { /* custom logic */ }
+            ],
+            'model_pending' => [
+                // Example: function($event) { /* custom logic */ }
+            ],
+            'model_approving' => [
+                // Example: function($event) { /* custom logic */ }
+            ],
+            'model_rejecting' => [
+                // Example: function($event) { /* custom logic */ }
+            ],
+            'model_setting_pending' => [
+                // Example: function($event) { /* custom logic */ }
+            ],
+        ],
+        
+        // Rejection Settings
+        'allow_custom_reasons' => false,       // Allow custom rejection reasons
+        'rejection_reasons' => [
+            'inappropriate_content' => 'Inappropriate Content',
+            'spam' => 'Spam',
+            'duplicate' => 'Duplicate',
+            'incomplete' => 'Incomplete',
+            'other' => 'Other',
+        ],
     ],
-
+    
     /*
     |--------------------------------------------------------------------------
     | Models Configuration
     |--------------------------------------------------------------------------
     |
-    | Custom settings for each model.
+    | Custom settings for each model. Override default settings for specific models.
+    | Only specify the settings you want to override.
     |
     */
     'models' => [
@@ -76,113 +97,17 @@ return [
         //     'mode' => 'upsert',
         //     'auto_pending_on_create' => true,
         //     'show_only_approved_by_default' => true,
-        //     'auto_scope' => true,
-        //     'events' => true,
+        //     'default_status_for_unaudited' => 'approved', // Example of overriding
+        //     'events_enabled' => false,
+        //     'allow_custom_reasons' => true,
+        //     'rejection_reasons' => [
+        //         'inappropriate_content' => 'Inappropriate Content',
+        //         'spam' => 'Spam',
+        //         'duplicate' => 'Duplicate',
+        //         'incomplete' => 'Incomplete',
+        //         'copyright_violation' => 'Copyright Violation',
+        //         'other' => 'Other',
+        //     ],
         // ],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Rejection Reasons
-    |--------------------------------------------------------------------------
-    |
-    | Predefined rejection reasons
-    |
-    */
-    'rejection_reasons' => [
-        'inappropriate_content' => 'Inappropriate Content',
-        'spam' => 'Spam',
-        'duplicate' => 'Duplicate',
-        'incomplete' => 'Incomplete',
-        'other' => 'Other',
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Features Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Advanced features like notifications and auto-setup
-    |
-    */
-    'features' => [
-        'notifications' => [
-            /*
-            |--------------------------------------------------------------------------
-            | Notifications Enabled
-            |--------------------------------------------------------------------------
-            |
-            | Whether to enable notification system for approval events.
-            |
-            */
-            'enabled' => env('APPROVAL_NOTIFICATIONS_ENABLED', false),
-
-            /*
-            |--------------------------------------------------------------------------
-            | Mail Notifications
-            |--------------------------------------------------------------------------
-            |
-            | Email notification settings
-            |
-            */
-            'mail' => [
-                'enabled' => env('APPROVAL_MAIL_ENABLED', false),
-                'from_address' => env('APPROVAL_MAIL_FROM_ADDRESS', env('MAIL_FROM_ADDRESS')),
-                'from_name' => env('APPROVAL_MAIL_FROM_NAME', env('MAIL_FROM_NAME')),
-                'template' => env('APPROVAL_MAIL_TEMPLATE', null), // Custom mail template path
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | Database Notifications
-            |--------------------------------------------------------------------------
-            |
-            | Database notification settings
-            |
-            */
-            'database' => [
-                'enabled' => env('APPROVAL_DB_NOTIFICATIONS_ENABLED', false),
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | Event Notifications
-            |--------------------------------------------------------------------------
-            |
-            | Which events should trigger notifications
-            |
-            */
-            'events' => [
-                'approved' => env('APPROVAL_NOTIFY_APPROVED', true),
-                'rejected' => env('APPROVAL_NOTIFY_REJECTED', true),
-                'pending' => env('APPROVAL_NOTIFY_PENDING', false),
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | Notification Recipients
-            |--------------------------------------------------------------------------
-            |
-            | Who should receive notifications
-            |
-            */
-            'recipients' => [
-                'admin_email' => env('APPROVAL_ADMIN_EMAIL'),
-                'notify_model_owner' => env('APPROVAL_NOTIFY_MODEL_OWNER', true),
-            ],
-        ],
-
-        /*
-        |--------------------------------------------------------------------------
-        | Auto Setup
-        |--------------------------------------------------------------------------
-        |
-        | Automatic setup features
-        |
-        */
-        'auto_setup' => [
-            'migrations' => env('APPROVAL_AUTO_MIGRATIONS', false),
-            'notifications_table' => env('APPROVAL_AUTO_NOTIFICATIONS_TABLE', false),
-        ],
     ],
 ];
