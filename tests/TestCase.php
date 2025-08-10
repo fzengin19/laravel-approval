@@ -28,6 +28,7 @@ class TestCase extends Orchestra
     {
         config()->set('database.default', 'testing');
         config()->set('auth.providers.users.model', \Tests\Models\User::class);
+        config()->set('approvals.user_model', \Tests\Models\User::class);
 
         // Run package migrations
         foreach (\Illuminate\Support\Facades\File::allFiles(__DIR__.'/../database/migrations') as $migration) {

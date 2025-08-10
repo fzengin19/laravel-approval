@@ -1,115 +1,135 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
-use LaravelApproval\Models\Approval;
-use LaravelApproval\Traits\Approvable;
+use LaravelApproval\Enums\ApprovalStatus;
+use LaravelApproval\Events\ModelApproved;
+use LaravelApproval\Events\ModelApproving;
+use LaravelApproval\Events\ModelRejected;
+use LaravelApproval\Events\ModelRejecting;
 use Tests\Models\Post;
-
-// Test için Post modelini Approvable trait'i ile genişlet
-class ApproveRejectTestPost extends Post
-{
-    use Approvable;
-
-    protected $table = 'posts';
-}
+use Tests\Models\User;
 
 beforeEach(function () {
-    $this->post = ApproveRejectTestPost::create([
-        'title' => 'Test Post',
-        'content' => 'Test Content',
-    ]);
+    $this->post = Post::factory()->create();
+    $this->user = User::factory()->create();
+    // Another user for upsert tests
+    $this->anotherUser = User::factory()->create();
 });
 
 it('can approve in insert mode', function () {
     config(['approvals.default.mode' => 'insert']);
 
-    $approval = $this->post->approve(1);
+    $this->post->approve($this->user->id);
 
-    expect($approval)->toBeInstanceOf(Approval::class);
-    expect($approval->status)->toBe('approved');
-    expect($approval->caused_by)->toBe(1);
+    expect($this->post->isApproved())->toBeTrue();
+    $this->assertDatabaseHas('approvals', [
+        'approvable_type' => $this->post->getMorphClass(),
+        'approvable_id' => $this->post->id,
+        'status' => ApprovalStatus::APPROVED->value,
+        'caused_by_id' => $this->user->id,
+        'caused_by_type' => $this->user->getMorphClass(),
+    ]);
     expect($this->post->approvals()->count())->toBe(1);
 });
 
 it('can approve in upsert mode', function () {
     config(['approvals.default.mode' => 'upsert']);
 
-    $approval = $this->post->approve(1);
+    $this->post->approve($this->user->id);
 
-    expect($approval)->toBeInstanceOf(Approval::class);
-    expect($approval->status)->toBe('approved');
-    expect($approval->caused_by)->toBe(1);
+    expect($this->post->isApproved())->toBeTrue();
+    $this->assertDatabaseHas('approvals', [
+        'approvable_type' => $this->post->getMorphClass(),
+        'approvable_id' => $this->post->id,
+        'status' => ApprovalStatus::APPROVED->value,
+        'caused_by_id' => $this->user->id,
+        'caused_by_type' => $this->user->getMorphClass(),
+    ]);
     expect($this->post->approvals()->count())->toBe(1);
 });
 
 it('can reject with reason and comment in insert mode', function () {
     config(['approvals.default.mode' => 'insert']);
 
-    $approval = $this->post->reject(1, 'Invalid content', 'Content violates guidelines');
+    $this->post->reject($this->user->id, 'Invalid content', 'Content violates guidelines');
 
-    expect($approval)->toBeInstanceOf(Approval::class);
-    expect($approval->status)->toBe('rejected');
-    expect($approval->caused_by)->toBe(1);
-    expect($approval->rejection_reason)->toBe('other');
-    expect($approval->rejection_comment)->toBe('Invalid content - Content violates guidelines');
-    expect($this->post->approvals()->count())->toBe(1);
-});
-
-it('can reject with reason and comment in upsert mode', function () {
-    config(['approvals.default.mode' => 'upsert']);
-
-    $approval = $this->post->reject(1, 'Invalid content', 'Content violates guidelines');
-
-    expect($approval)->toBeInstanceOf(Approval::class);
-    expect($approval->status)->toBe('rejected');
-    expect($approval->caused_by)->toBe(1);
-    expect($approval->rejection_reason)->toBe('other');
-    expect($approval->rejection_comment)->toBe('Invalid content - Content violates guidelines');
+    expect($this->post->isRejected())->toBeTrue();
+    $this->assertDatabaseHas('approvals', [
+        'approvable_type' => $this->post->getMorphClass(),
+        'approvable_id' => $this->post->id,
+        'status' => ApprovalStatus::REJECTED->value,
+        'caused_by_id' => $this->user->id,
+        'caused_by_type' => $this->user->getMorphClass(),
+        'rejection_reason' => 'other',
+        'rejection_comment' => 'Invalid content - Content violates guidelines',
+    ]);
     expect($this->post->approvals()->count())->toBe(1);
 });
 
 it('uses authenticated user id when caused_by is null', function () {
     config(['approvals.default.mode' => 'insert']);
+    Auth::login($this->user);
 
-    $approval = $this->post->approve();
+    $this->post->approve();
 
-    expect($approval->caused_by)->toBeNull();
+    expect($this->post->isApproved())->toBeTrue();
+    $this->assertDatabaseHas('approvals', [
+        'approvable_type' => $this->post->getMorphClass(),
+        'approvable_id' => $this->post->id,
+        'caused_by_id' => $this->user->id,
+        'caused_by_type' => $this->user->getMorphClass(),
+    ]);
 });
 
 it('uses model-specific config for mode', function () {
     config([
         'approvals.default.mode' => 'insert',
         'approvals.models' => [
-            ApproveRejectTestPost::class => [
+            Post::class => [
                 'mode' => 'upsert',
             ],
         ],
     ]);
 
     // First approval should create a record
-    $approval1 = $this->post->approve(1);
+    $this->post->approve($this->user->id);
+    $this->post->refresh();
     expect($this->post->approvals()->count())->toBe(1);
+    expect($this->post->isApproved())->toBeTrue();
 
     // Second approval should update the existing record (upsert mode)
-    $approval2 = $this->post->reject(2, 'Invalid');
+    $this->post->reject($this->anotherUser->id, 'Invalid');
+    $this->post->refresh();
     expect($this->post->approvals()->count())->toBe(1);
-    expect($approval2->status)->toBe('rejected');
+    expect($this->post->isRejected())->toBeTrue();
+    $this->assertDatabaseHas('approvals', [
+        'approvable_id' => $this->post->id,
+        'caused_by_id' => $this->anotherUser->id,
+        'status' => ApprovalStatus::REJECTED->value,
+    ]);
 });
 
 it('uses model-specific config for events', function () {
     config([
-        'approvals.default.events' => true,
+        'approvals.default.events_enabled' => true,
         'approvals.models' => [
-            ApproveRejectTestPost::class => [
-                'events' => false,
+            Post::class => [
+                'events_enabled' => false,
             ],
         ],
     ]);
 
-    $this->post->approve(1);
+    Event::fake([
+        ModelApproved::class,
+        ModelApproving::class,
+        ModelRejected::class,
+        ModelRejecting::class,
+    ]);
 
-    // Events should not be dispatched for this model
-    // Note: In a real test environment, you would use Event::fake() and Event::assertNotDispatched()
-    // For now, we just verify the method works without errors
+    $this->post->approve($this->user->id);
+    $this->post->refresh();
+
+    Event::assertNothingDispatched();
     expect($this->post->isApproved())->toBeTrue();
 });

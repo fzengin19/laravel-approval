@@ -1,80 +1,101 @@
 <?php
 
+namespace LaravelApproval\Tests\Facades;
+
+use LaravelApproval\Enums\ApprovalStatus;
 use LaravelApproval\Facades\Approval;
-use LaravelApproval\Traits\Approvable;
+use LaravelApproval\Tests\TestCase;
 use Tests\Models\Post;
+use Tests\Models\User;
 
-// Test için Post modelini Approvable trait'i ile genişlet
-class FacadeTestPost extends Post
+class ApprovalTest extends TestCase
 {
-    use Approvable;
+    private Post $post;
 
-    protected $table = 'posts';
+    private User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->post = Post::factory()->create();
+        $this->user = User::factory()->create();
+    }
+
+    /** @test */
+    public function it_can_approve_a_model_through_facade()
+    {
+        Approval::approve($this->post, $this->user->id);
+
+        $this->post->refresh();
+        $this->assertTrue($this->post->isApproved());
+        $this->assertDatabaseHas('approvals', [
+            'approvable_type' => $this->post->getMorphClass(),
+            'approvable_id' => $this->post->id,
+            'status' => ApprovalStatus::APPROVED->value,
+            'caused_by_id' => $this->user->id,
+            'caused_by_type' => $this->user->getMorphClass(),
+        ]);
+    }
+
+    /** @test */
+    public function it_can_reject_a_model_through_facade()
+    {
+        Approval::reject($this->post, $this->user->id, 'Invalid content', 'Content violates guidelines');
+
+        $this->post->refresh();
+        $this->assertTrue($this->post->isRejected());
+        $this->assertDatabaseHas('approvals', [
+            'approvable_type' => $this->post->getMorphClass(),
+            'approvable_id' => $this->post->id,
+            'status' => ApprovalStatus::REJECTED->value,
+            'caused_by_id' => $this->user->id,
+            'caused_by_type' => $this->user->getMorphClass(),
+            'rejection_reason' => 'other',
+            'rejection_comment' => 'Invalid content - Content violates guidelines',
+        ]);
+    }
+
+    /** @test */
+    public function it_can_set_pending_through_facade()
+    {
+        Approval::setPending($this->post, $this->user->id);
+
+        $this->post->refresh();
+        $this->assertTrue($this->post->isPending());
+        $this->assertDatabaseHas('approvals', [
+            'approvable_type' => $this->post->getMorphClass(),
+            'approvable_id' => $this->post->id,
+            'status' => ApprovalStatus::PENDING->value,
+            'caused_by_id' => $this->user->id,
+            'caused_by_type' => $this->user->getMorphClass(),
+        ]);
+    }
+
+    /** @test */
+    public function it_can_get_statistics_for_a_model_class()
+    {
+        Approval::approve(Post::factory()->create(), $this->user->id);
+        Approval::setPending(Post::factory()->create(), $this->user->id);
+        Approval::reject(Post::factory()->create(), $this->user->id, 'Invalid');
+
+        $statistics = Approval::getStatistics(Post::class);
+
+        $this->assertEquals(4, $statistics['total']); // 1 from setUp + 3 from this test
+        $this->assertEquals(1, $statistics['approved']);
+        $this->assertEquals(1, $statistics['pending']);
+        $this->assertEquals(1, $statistics['rejected']);
+    }
+
+    /** @test */
+    public function it_can_get_all_statistics()
+    {
+        config(['approvals.models' => [Post::class => []]]);
+
+        Approval::approve(Post::factory()->create(), $this->user->id);
+
+        $allStatistics = Approval::getAllStatistics();
+
+        $this->assertArrayHasKey(Post::class, $allStatistics);
+        $this->assertArrayHasKey('total', $allStatistics[Post::class]);
+    }
 }
-
-beforeEach(function () {
-    $this->post = FacadeTestPost::create([
-        'title' => 'Test Post',
-        'content' => 'Test Content',
-    ]);
-});
-
-it('can approve a model through facade', function () {
-    $approval = Approval::approve($this->post, 1);
-
-    expect($approval)->toBeInstanceOf(\LaravelApproval\Models\Approval::class);
-    expect($approval->status)->toBe('approved');
-    expect($approval->caused_by)->toBe(1);
-});
-
-it('can reject a model through facade', function () {
-    $approval = Approval::reject($this->post, 1, 'Invalid content', 'Content violates guidelines');
-
-    expect($approval)->toBeInstanceOf(\LaravelApproval\Models\Approval::class);
-    expect($approval->status)->toBe('rejected');
-    expect($approval->caused_by)->toBe(1);
-    expect($approval->rejection_reason)->toBe('other');
-    expect($approval->rejection_comment)->toBe('Invalid content - Content violates guidelines');
-});
-
-it('can set pending through facade', function () {
-    $approval = Approval::setPending($this->post, 1);
-
-    expect($approval)->toBeInstanceOf(\LaravelApproval\Models\Approval::class);
-    expect($approval->status)->toBe('pending');
-    expect($approval->caused_by)->toBe(1);
-});
-
-it('can get statistics for a model class', function () {
-    // Create approved post
-    $approvedPost = FacadeTestPost::create(['title' => 'Approved', 'content' => 'Content']);
-    $approvedPost->approve(1);
-
-    // Create pending post
-    $pendingPost = FacadeTestPost::create(['title' => 'Pending', 'content' => 'Content']);
-    $pendingPost->setPending(1);
-
-    // Reddedilmiş post oluştur
-    $rejectedPost = FacadeTestPost::create(['title' => 'Rejected', 'content' => 'Content']);
-    $rejectedPost->reject(1, 'Invalid');
-
-    $statistics = Approval::getStatistics(FacadeTestPost::class);
-
-    expect($statistics)->toHaveKeys(['total', 'approved', 'pending', 'rejected', 'approved_percentage', 'pending_percentage', 'rejected_percentage']);
-    expect($statistics['total'])->toBe(4); // 3 yeni + 1 beforeEach'den
-    expect($statistics['approved'])->toBe(1);
-    expect($statistics['pending'])->toBe(1);
-    expect($statistics['rejected'])->toBe(1);
-});
-
-it('can get all statistics', function () {
-    config(['approvals.models' => [FacadeTestPost::class => []]]);
-
-    $approvedPost = FacadeTestPost::create(['title' => 'Approved', 'content' => 'Content']);
-    $approvedPost->approve(1);
-
-    $allStatistics = Approval::getAllStatistics();
-
-    expect($allStatistics)->toHaveKey(FacadeTestPost::class);
-    expect($allStatistics[FacadeTestPost::class])->toHaveKeys(['total', 'approved', 'pending', 'rejected', 'approved_percentage', 'pending_percentage', 'rejected_percentage']);
-});

@@ -1,96 +1,77 @@
 <?php
 
-use LaravelApproval\Models\Approval;
-use LaravelApproval\Traits\Approvable;
 use Tests\Models\Post;
 
-// Test için Post modelini Approvable trait'i ile genişlet
-class LocalScopesTestPost extends Post
-{
-    use Approvable;
-
-    protected $table = 'posts';
-}
-
 beforeEach(function () {
-    // Create 3 approved posts
-    for ($i = 1; $i <= 3; $i++) {
-        $post = LocalScopesTestPost::create([
-            'title' => "Approved Post {$i}",
-            'content' => "Content {$i}",
-        ]);
+    // Set up rejection reasons configuration for testing
+    config(['approvals.default.rejection_reasons' => [
+        'inappropriate_content' => 'Inappropriate Content',
+        'spam' => 'Spam',
+        'duplicate' => 'Duplicate',
+        'incomplete' => 'Incomplete',
+        'other' => 'Other',
+    ]]);
 
-        Approval::create([
-            'approvable_type' => LocalScopesTestPost::class,
-            'approvable_id' => $post->id,
-            'status' => 'approved',
-            'caused_by' => 1,
-        ]);
-    }
-
-    // Create 2 pending posts
-    for ($i = 1; $i <= 2; $i++) {
-        $post = LocalScopesTestPost::create([
-            'title' => "Pending Post {$i}",
-            'content' => "Content {$i}",
-        ]);
-
-        Approval::create([
-            'approvable_type' => LocalScopesTestPost::class,
-            'approvable_id' => $post->id,
-            'status' => 'pending',
-            'caused_by' => 1,
-        ]);
-    }
-
-    // 1 reddedilmiş post oluştur
-    $post = LocalScopesTestPost::create([
-        'title' => 'Rejected Post',
-        'content' => 'Content',
-    ]);
-
-    Approval::create([
-        'approvable_type' => LocalScopesTestPost::class,
-        'approvable_id' => $post->id,
-        'status' => 'rejected',
-        'caused_by' => 1,
-    ]);
+    // Create test posts
+    $this->post1 = Post::create(['title' => 'Post 1', 'content' => 'Content 1']);
+    $this->post2 = Post::create(['title' => 'Post 2', 'content' => 'Content 2']);
+    $this->post3 = Post::create(['title' => 'Post 3', 'content' => 'Content 3']);
 });
 
 it('can scope to approved posts', function () {
-    $approvedPosts = LocalScopesTestPost::approved()->get();
+    $this->post1->approve(1);
+    $this->post2->reject(1, 'spam', 'This is spam');
+    $this->post3->setPending(1);
 
-    expect($approvedPosts)->toHaveCount(3);
-    expect($approvedPosts->pluck('title')->toArray())->toContain('Approved Post 1');
-    expect($approvedPosts->pluck('title')->toArray())->toContain('Approved Post 2');
-    expect($approvedPosts->pluck('title')->toArray())->toContain('Approved Post 3');
+    $approvedPosts = Post::approved()->get();
+
+    expect($approvedPosts)->toHaveCount(1);
+    expect($approvedPosts->first()->id)->toBe($this->post1->id);
 });
 
 it('can scope to pending posts', function () {
-    $pendingPosts = LocalScopesTestPost::pending()->get();
+    $this->post1->approve(1);
+    $this->post2->reject(1, 'spam', 'This is spam');
+    $this->post3->setPending(1);
 
-    expect($pendingPosts)->toHaveCount(2);
-    expect($pendingPosts->pluck('title')->toArray())->toContain('Pending Post 1');
-    expect($pendingPosts->pluck('title')->toArray())->toContain('Pending Post 2');
+    $pendingPosts = Post::pending()->get();
+
+    expect($pendingPosts)->toHaveCount(1);
+    expect($pendingPosts->first()->id)->toBe($this->post3->id);
 });
 
 it('can scope to rejected posts', function () {
-    $rejectedPosts = LocalScopesTestPost::rejected()->get();
+    $this->post1->approve(1);
+    $this->post2->reject(1, 'spam', 'This is spam');
+    $this->post3->setPending(1);
+
+    $rejectedPosts = Post::rejected()->get();
 
     expect($rejectedPosts)->toHaveCount(1);
-    expect($rejectedPosts->first()->title)->toBe('Rejected Post');
+    expect($rejectedPosts->first()->id)->toBe($this->post2->id);
 });
 
 it('can scope with approval status', function () {
-    $posts = LocalScopesTestPost::withApprovalStatus()->get();
+    $this->post1->approve(1);
+    $this->post2->reject(1, 'spam', 'This is spam');
+    $this->post3->setPending(1);
 
-    expect($posts)->toHaveCount(6);
-    expect($posts->first()->latestApproval)->not->toBeNull();
+    $posts = Post::withApprovalStatus()->get();
+
+    expect($posts)->toHaveCount(3);
+
+    // Check that latestApproval relationship is loaded
+    foreach ($posts as $post) {
+        expect($post->relationLoaded('latestApproval'))->toBeTrue();
+    }
 });
 
 it('can scope with unapproved posts', function () {
-    $posts = LocalScopesTestPost::withUnapproved()->get();
+    $this->post1->approve(1);
+    $this->post2->reject(1, 'spam', 'This is spam');
+    $this->post3->setPending(1);
 
-    expect($posts)->toHaveCount(6);
-    // This scope removes the global scope, so all posts should be visible
+    $unapprovedPosts = Post::withUnapproved()->get();
+
+    expect($unapprovedPosts)->toHaveCount(3); // All posts should be included
 });

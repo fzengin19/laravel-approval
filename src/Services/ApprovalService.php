@@ -2,33 +2,37 @@
 
 namespace LaravelApproval\Services;
 
-use Illuminate\Database\Eloquent\Model;
-use LaravelApproval\Models\Approval;
+use LaravelApproval\Contracts\ApprovableInterface;
+use LaravelApproval\Contracts\StatisticsServiceInterface;
 
 class ApprovalService
 {
+    public function __construct(
+        protected StatisticsServiceInterface $statisticsService
+    ) {}
+
     /**
      * Approve a model.
      */
-    public function approve(Model $model, ?int $causedBy = null): Approval
+    public function approve(ApprovableInterface $model, ?int $userId = null, ?string $comment = null): void
     {
-        return $model->approve($causedBy);
+        $model->approve($userId, $comment);
     }
 
     /**
      * Reject a model.
      */
-    public function reject(Model $model, ?int $causedBy = null, ?string $reason = null, ?string $comment = null): Approval
+    public function reject(ApprovableInterface $model, ?int $userId = null, ?string $reason = null, ?string $comment = null): void
     {
-        return $model->reject($causedBy, $reason, $comment);
+        $model->reject($userId, $reason, $comment);
     }
 
     /**
      * Set a model to pending.
      */
-    public function setPending(Model $model, ?int $causedBy = null): Approval
+    public function setPending(ApprovableInterface $model, ?int $userId = null, ?string $comment = null): void
     {
-        return $model->setPending($causedBy);
+        $model->setPending($userId, $comment);
     }
 
     /**
@@ -36,20 +40,7 @@ class ApprovalService
      */
     public function getStatistics(string $modelClass): array
     {
-        $total = $modelClass::count();
-        $approved = $modelClass::approved()->count();
-        $pending = $modelClass::pending()->count();
-        $rejected = $modelClass::rejected()->count();
-
-        return [
-            'total' => $total,
-            'approved' => $approved,
-            'pending' => $pending,
-            'rejected' => $rejected,
-            'approved_percentage' => $total > 0 ? round(($approved / $total) * 100, 2) : 0,
-            'pending_percentage' => $total > 0 ? round(($pending / $total) * 100, 2) : 0,
-            'rejected_percentage' => $total > 0 ? round(($rejected / $total) * 100, 2) : 0,
-        ];
+        return $this->statisticsService->getStatistics($modelClass);
     }
 
     /**
@@ -57,13 +48,54 @@ class ApprovalService
      */
     public function getAllStatistics(): array
     {
-        $statistics = [];
-        $models = config('approvals.models', []);
+        return $this->statisticsService->getAllStatistics();
+    }
 
-        foreach ($models as $modelClass => $config) {
-            $statistics[$modelClass] = $this->getStatistics($modelClass);
-        }
+    /**
+     * Get approval statistics for a specific model instance.
+     */
+    public function getModelStatistics(ApprovableInterface $model): array
+    {
+        return $this->statisticsService->getModelStatistics($model);
+    }
 
-        return $statistics;
+    /**
+     * Get approval percentage for a model class.
+     */
+    public function getApprovalPercentage(string $modelClass): float
+    {
+        return $this->statisticsService->getApprovalPercentage($modelClass);
+    }
+
+    /**
+     * Get rejection percentage for a model class.
+     */
+    public function getRejectionPercentage(string $modelClass): float
+    {
+        return $this->statisticsService->getRejectionPercentage($modelClass);
+    }
+
+    /**
+     * Get pending percentage for a model class.
+     */
+    public function getPendingPercentage(string $modelClass): float
+    {
+        return $this->statisticsService->getPendingPercentage($modelClass);
+    }
+
+    /**
+     * Get detailed statistics with additional information.
+     */
+    public function getDetailedStatistics(string $modelClass): array
+    {
+        return $this->statisticsService->getDetailedStatistics($modelClass);
+    }
+
+    /**
+     * Get statistics for a date range.
+     */
+    public function getStatisticsForDateRange(string $modelClass, string $startDate, string $endDate): array
+    {
+        return $this->statisticsService->getStatisticsForDateRange($modelClass, $startDate, $endDate);
     }
 }

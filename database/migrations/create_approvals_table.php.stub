@@ -14,15 +14,14 @@ return new class extends Migration
         Schema::create('approvals', function (Blueprint $table) {
             $table->id();
             $table->morphs('approvable');
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->string('status')->default('pending');
             $table->string('rejection_reason')->nullable();
             $table->text('rejection_comment')->nullable();
-            $table->unsignedBigInteger('caused_by')->nullable();
+            $table->nullableMorphs('caused_by');
             $table->timestamp('responded_at')->nullable();
             $table->timestamps();
 
             $table->index('status');
-            $table->index('caused_by');
             $table->index('responded_at');
         });
     }

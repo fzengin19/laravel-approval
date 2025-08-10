@@ -4,9 +4,10 @@ namespace Tests\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use LaravelApproval\Contracts\ApprovableInterface;
 use LaravelApproval\Traits\Approvable;
 
-class Post extends Model
+class Post extends Model implements ApprovableInterface
 {
     use Approvable, HasFactory;
 

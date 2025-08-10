@@ -3,11 +3,27 @@
 namespace LaravelApproval;
 
 use LaravelApproval\Commands\ApprovalStatusCommand;
+use LaravelApproval\Contracts\ApprovalRepositoryInterface;
+use LaravelApproval\Contracts\ApprovalValidatorInterface;
+use LaravelApproval\Contracts\StatisticsServiceInterface;
+use LaravelApproval\Core\ApprovalEventDispatcher;
+use LaravelApproval\Core\ApprovalRepository;
+use LaravelApproval\Core\ApprovalValidator;
+use LaravelApproval\Core\WebhookDispatcher;
 use LaravelApproval\Events\ModelApproved;
+use LaravelApproval\Events\ModelApproving;
 use LaravelApproval\Events\ModelPending;
 use LaravelApproval\Events\ModelRejected;
-use LaravelApproval\Listeners\SendApprovalNotifications;
+use LaravelApproval\Events\ModelRejecting;
+use LaravelApproval\Events\ModelSettingPending;
+use LaravelApproval\Listeners\HandleModelApproved;
+use LaravelApproval\Listeners\HandleModelApproving;
+use LaravelApproval\Listeners\HandleModelPending;
+use LaravelApproval\Listeners\HandleModelRejected;
+use LaravelApproval\Listeners\HandleModelRejecting;
+use LaravelApproval\Listeners\HandleModelSettingPending;
 use LaravelApproval\Services\ApprovalService;
+use LaravelApproval\Services\StatisticsService;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -24,29 +40,54 @@ class LaravelApprovalServiceProvider extends PackageServiceProvider
 
     public function packageRegistered(): void
     {
+        // Bind repository and validator
+        $this->app->bind(ApprovalRepositoryInterface::class, ApprovalRepository::class);
+        $this->app->bind(ApprovalValidatorInterface::class, ApprovalValidator::class);
+        $this->app->bind(StatisticsServiceInterface::class, StatisticsService::class);
+
+        // Bind event dispatcher
+        $this->app->singleton(ApprovalEventDispatcher::class);
+        $this->app->singleton(WebhookDispatcher::class);
+
+        // Bind main service
         $this->app->singleton('laravel-approval', function ($app) {
-            return new ApprovalService;
+            return new ApprovalService($app->make(StatisticsServiceInterface::class));
         });
     }
 
     public function packageBooted(): void
     {
-        // Event listener'ları kaydet
-        if (config('approvals.features.notifications.enabled', false)) {
-            $this->app['events']->listen(
-                ModelApproved::class,
-                [SendApprovalNotifications::class, 'handle']
-            );
+        parent::packageBooted();
 
-            $this->app['events']->listen(
-                ModelRejected::class,
-                [SendApprovalNotifications::class, 'handle']
-            );
+        // Register event listeners
+        $this->app['events']->listen(
+            ModelApproved::class,
+            HandleModelApproved::class
+        );
 
-            $this->app['events']->listen(
-                ModelPending::class,
-                [SendApprovalNotifications::class, 'handle']
-            );
-        }
+        $this->app['events']->listen(
+            ModelRejected::class,
+            HandleModelRejected::class
+        );
+
+        $this->app['events']->listen(
+            ModelPending::class,
+            HandleModelPending::class
+        );
+
+        $this->app['events']->listen(
+            ModelApproving::class,
+            HandleModelApproving::class
+        );
+
+        $this->app['events']->listen(
+            ModelRejecting::class,
+            HandleModelRejecting::class
+        );
+
+        $this->app['events']->listen(
+            ModelSettingPending::class,
+            HandleModelSettingPending::class
+        );
     }
 }
