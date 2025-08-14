@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LaravelApproval\LaravelApproval;
 
 use LaravelApproval\LaravelApproval\Commands\LaravelApprovalCommand;
+use LaravelApproval\LaravelApproval\Contracts\ApprovalRepositoryInterface;
+use LaravelApproval\LaravelApproval\Repositories\ApprovalRepository;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -21,5 +25,11 @@ class LaravelApprovalServiceProvider extends PackageServiceProvider
             ->hasViews()
             ->hasMigration('create_approval_table')
             ->hasCommand(LaravelApprovalCommand::class);
+    }
+
+    public function packageRegistered(): void
+    {
+        // Bind repository interfaces to their implementations
+        $this->app->bind(ApprovalRepositoryInterface::class, ApprovalRepository::class);
     }
 }
