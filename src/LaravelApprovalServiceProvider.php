@@ -2,9 +2,9 @@
 
 namespace LaravelApproval\LaravelApproval;
 
+use LaravelApproval\LaravelApproval\Commands\LaravelApprovalCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use LaravelApproval\LaravelApproval\Commands\LaravelApprovalCommand;
 
 class LaravelApprovalServiceProvider extends PackageServiceProvider
 {
@@ -19,7 +19,7 @@ class LaravelApprovalServiceProvider extends PackageServiceProvider
             ->name('laravel-approval')
             ->hasConfigFile()
             ->hasViews()
-            ->hasMigration('create_laravel_approval_table')
+            ->hasMigration('create_approval_table')
             ->hasCommand(LaravelApprovalCommand::class);
     }
 }

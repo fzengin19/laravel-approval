@@ -6,14 +6,35 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
-        Schema::create('laravel_approval_table', function (Blueprint $table) {
+        Schema::create('approvals', function (Blueprint $table) {
             $table->id();
-
-            // add fields
-
+            
+            // Polymorphic relationship to the approvable model
+            $table->string('approvable_type');
+            $table->unsignedBigInteger('approvable_id');
+            $table->index(['approvable_type', 'approvable_id']);
+            
+            // Polymorphic relationship to the causer (nullable)
+            $table->string('causer_type')->nullable();
+            $table->unsignedBigInteger('causer_id')->nullable();
+            $table->index(['causer_type', 'causer_id']);
+            
+            // Approval status
+            $table->string('status');
+            $table->index('status');
+            
+            // Rejection details (nullable)
+            $table->string('rejection_reason')->nullable();
+            $table->text('rejection_comment')->nullable();
+            
             $table->timestamps();
         });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('approvals');
     }
 };
