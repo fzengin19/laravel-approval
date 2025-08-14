@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace LaravelApproval\LaravelApproval\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class LaravelApprovalCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'laravel-approval';
 
     public $description = 'My command';
 
