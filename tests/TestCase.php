@@ -37,9 +37,15 @@ class TestCase extends Orchestra
         $migration = include __DIR__.'/../database/migrations/create_approval_table.php.stub';
         $migration->up();
 
-        // Run test migrations
-        foreach (\Illuminate\Support\Facades\File::allFiles(__DIR__.'/Database/Migrations') as $migration) {
-            (include $migration->getRealPath())->up();
+        // Run test migrations using glob for better compatibility
+        $migrationFiles = glob(__DIR__.'/Database/Migrations/*.php');
+        sort($migrationFiles); // Ensure consistent order
+        
+        foreach ($migrationFiles as $migrationPath) {
+            $migration = include $migrationPath;
+            if ($migration && is_object($migration)) {
+                $migration->up();
+            }
         }
     }
 }
