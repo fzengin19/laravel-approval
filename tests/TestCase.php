@@ -40,7 +40,7 @@ class TestCase extends Orchestra
         // Run test migrations using glob for better compatibility
         $migrationFiles = glob(__DIR__.'/Database/Migrations/*.php');
         sort($migrationFiles); // Ensure consistent order
-        
+
         foreach ($migrationFiles as $migrationPath) {
             $migration = include $migrationPath;
             if ($migration && is_object($migration)) {
