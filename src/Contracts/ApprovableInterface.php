@@ -11,6 +11,11 @@ use LaravelApproval\LaravelApproval\Enums\ApprovalStatus;
 interface ApprovableInterface
 {
     /**
+     * Get the primary key value.
+     */
+    public function getKey();
+
+    /**
      * Approve the model.
      */
     public function approve(int $causerId): self;
@@ -48,7 +53,7 @@ interface ApprovableInterface
     /**
      * Get the approval configuration for this model.
      */
-    public function getApprovalConfig(): array;
+    public function getApprovalConfig();
 
     /**
      * Get all approval records for this model.

@@ -2,171 +2,93 @@
 
 declare(strict_types=1);
 
-namespace LaravelApproval\LaravelApproval\Tests\Unit\Contracts;
-
 use LaravelApproval\LaravelApproval\Contracts\ApprovalValidatorInterface;
-use PHPUnit\Framework\TestCase;
 
-final class ApprovalValidatorInterfaceTest extends TestCase
-{
-    public function test_approval_validator_interface_exists(): void
-    {
-        $this->assertTrue(interface_exists(ApprovalValidatorInterface::class));
-    }
+describe('ApprovalValidatorInterface', function () {
+    it('defines validateApproval method', function () {
+        $reflection = new ReflectionClass(ApprovalValidatorInterface::class);
+        $method = $reflection->getMethod('validateApproval');
 
-    public function test_approval_validator_interface_has_required_methods(): void
-    {
-        $reflection = new \ReflectionClass(ApprovalValidatorInterface::class);
-
-        $expectedMethods = [
-            'validateApprovalData',
-            'validateStatus',
-            'validateCauser',
-            'validateModel',
-            'validateRejectionReason',
-            'canApprove',
-            'canReject',
-            'canSetPending',
-        ];
-
-        $actualMethods = array_map(
-            fn (\ReflectionMethod $method) => $method->getName(),
-            $reflection->getMethods()
-        );
-
-        foreach ($expectedMethods as $expectedMethod) {
-            $this->assertContains(
-                $expectedMethod,
-                $actualMethods,
-                "ApprovalValidatorInterface should have {$expectedMethod} method"
-            );
-        }
-    }
-
-    public function test_approval_validator_interface_validate_approval_data_method(): void
-    {
-        $reflection = new \ReflectionClass(ApprovalValidatorInterface::class);
-        $method = $reflection->getMethod('validateApprovalData');
-
-        $this->assertTrue($method->isPublic());
-        $this->assertEquals('bool', $method->getReturnType()?->getName());
+        expect($method->getName())->toBe('validateApproval');
+        expect($method->getReturnType()->getName())->toBe('void');
 
         $parameters = $method->getParameters();
-        $this->assertCount(1, $parameters);
-        $this->assertEquals('data', $parameters[0]->getName());
-        $this->assertEquals('array', $parameters[0]->getType()?->getName());
-    }
+        expect($parameters)->toHaveCount(2);
+        expect($parameters[0]->getName())->toBe('model');
+        expect($parameters[0]->getType()->getName())->toBe('LaravelApproval\LaravelApproval\Contracts\ApprovableInterface');
+        expect($parameters[1]->getName())->toBe('causerId');
+        expect($parameters[1]->getType()->getName())->toBe('int');
+        expect($parameters[1]->isDefaultValueAvailable())->toBeTrue();
+        expect($parameters[1]->getDefaultValue())->toBeNull();
+    });
 
-    public function test_approval_validator_interface_validate_status_method(): void
-    {
-        $reflection = new \ReflectionClass(ApprovalValidatorInterface::class);
-        $method = $reflection->getMethod('validateStatus');
+    it('defines validateRejection method', function () {
+        $reflection = new ReflectionClass(ApprovalValidatorInterface::class);
+        $method = $reflection->getMethod('validateRejection');
 
-        $this->assertTrue($method->isPublic());
-        $this->assertEquals('bool', $method->getReturnType()?->getName());
-
-        $parameters = $method->getParameters();
-        $this->assertCount(1, $parameters);
-        $this->assertEquals('status', $parameters[0]->getName());
-    }
-
-    public function test_approval_validator_interface_validate_causer_method(): void
-    {
-        $reflection = new \ReflectionClass(ApprovalValidatorInterface::class);
-        $method = $reflection->getMethod('validateCauser');
-
-        $this->assertTrue($method->isPublic());
-        $this->assertEquals('bool', $method->getReturnType()?->getName());
+        expect($method->getName())->toBe('validateRejection');
+        expect($method->getReturnType()->getName())->toBe('void');
 
         $parameters = $method->getParameters();
-        $this->assertCount(1, $parameters);
-        $this->assertEquals('causerId', $parameters[0]->getName());
-    }
+        expect($parameters)->toHaveCount(4);
+        expect($parameters[0]->getName())->toBe('model');
+        expect($parameters[0]->getType()->getName())->toBe('LaravelApproval\LaravelApproval\Contracts\ApprovableInterface');
+        expect($parameters[1]->getName())->toBe('causerId');
+        expect($parameters[1]->getType()->getName())->toBe('int');
+        expect($parameters[1]->isDefaultValueAvailable())->toBeTrue();
+        expect($parameters[1]->getDefaultValue())->toBeNull();
+        expect($parameters[2]->getName())->toBe('reason');
+        expect($parameters[2]->getType()->getName())->toBe('string');
+        expect($parameters[2]->isDefaultValueAvailable())->toBeTrue();
+        expect($parameters[2]->getDefaultValue())->toBeNull();
+        expect($parameters[3]->getName())->toBe('comment');
+        expect($parameters[3]->getType()->getName())->toBe('string');
+        expect($parameters[3]->isDefaultValueAvailable())->toBeTrue();
+        expect($parameters[3]->getDefaultValue())->toBeNull();
+    });
 
-    public function test_approval_validator_interface_validate_model_method(): void
-    {
-        $reflection = new \ReflectionClass(ApprovalValidatorInterface::class);
-        $method = $reflection->getMethod('validateModel');
+    it('defines validatePending method', function () {
+        $reflection = new ReflectionClass(ApprovalValidatorInterface::class);
+        $method = $reflection->getMethod('validatePending');
 
-        $this->assertTrue($method->isPublic());
-        $this->assertEquals('bool', $method->getReturnType()?->getName());
-
-        $parameters = $method->getParameters();
-        $this->assertCount(1, $parameters);
-        $this->assertEquals('model', $parameters[0]->getName());
-    }
-
-    public function test_approval_validator_interface_validate_rejection_reason_method(): void
-    {
-        $reflection = new \ReflectionClass(ApprovalValidatorInterface::class);
-        $method = $reflection->getMethod('validateRejectionReason');
-
-        $this->assertTrue($method->isPublic());
-        $this->assertEquals('bool', $method->getReturnType()?->getName());
-
-        $parameters = $method->getParameters();
-        $this->assertCount(2, $parameters);
-        $this->assertEquals('reason', $parameters[0]->getName());
-        $this->assertEquals('modelClass', $parameters[1]->getName());
-    }
-
-    public function test_approval_validator_interface_permission_methods(): void
-    {
-        $reflection = new \ReflectionClass(ApprovalValidatorInterface::class);
-
-        $permissionMethods = ['canApprove', 'canReject', 'canSetPending'];
-
-        foreach ($permissionMethods as $methodName) {
-            $method = $reflection->getMethod($methodName);
-            $this->assertTrue($method->isPublic());
-            $this->assertEquals('bool', $method->getReturnType()?->getName());
-
-            $parameters = $method->getParameters();
-            $this->assertCount(2, $parameters);
-            $this->assertEquals('model', $parameters[0]->getName());
-            $this->assertEquals('causerId', $parameters[1]->getName());
-        }
-    }
-
-    public function test_approval_validator_interface_can_approve_method_signature(): void
-    {
-        $reflection = new \ReflectionClass(ApprovalValidatorInterface::class);
-        $method = $reflection->getMethod('canApprove');
-
-        $this->assertTrue($method->isPublic());
-        $this->assertEquals('bool', $method->getReturnType()?->getName());
+        expect($method->getName())->toBe('validatePending');
+        expect($method->getReturnType()->getName())->toBe('void');
 
         $parameters = $method->getParameters();
-        $this->assertCount(2, $parameters);
-        $this->assertEquals('model', $parameters[0]->getName());
-        $this->assertEquals('causerId', $parameters[1]->getName());
-    }
+        expect($parameters)->toHaveCount(2);
+        expect($parameters[0]->getName())->toBe('model');
+        expect($parameters[0]->getType()->getName())->toBe('LaravelApproval\LaravelApproval\Contracts\ApprovableInterface');
+        expect($parameters[1]->getName())->toBe('causerId');
+        expect($parameters[1]->getType()->getName())->toBe('int');
+        expect($parameters[1]->isDefaultValueAvailable())->toBeTrue();
+        expect($parameters[1]->getDefaultValue())->toBeNull();
+    });
 
-    public function test_approval_validator_interface_can_reject_method_signature(): void
-    {
-        $reflection = new \ReflectionClass(ApprovalValidatorInterface::class);
-        $method = $reflection->getMethod('canReject');
+    it('defines validateStatusTransition method', function () {
+        $reflection = new ReflectionClass(ApprovalValidatorInterface::class);
+        $method = $reflection->getMethod('validateStatusTransition');
 
-        $this->assertTrue($method->isPublic());
-        $this->assertEquals('bool', $method->getReturnType()?->getName());
-
-        $parameters = $method->getParameters();
-        $this->assertCount(2, $parameters);
-        $this->assertEquals('model', $parameters[0]->getName());
-        $this->assertEquals('causerId', $parameters[1]->getName());
-    }
-
-    public function test_approval_validator_interface_can_set_pending_method_signature(): void
-    {
-        $reflection = new \ReflectionClass(ApprovalValidatorInterface::class);
-        $method = $reflection->getMethod('canSetPending');
-
-        $this->assertTrue($method->isPublic());
-        $this->assertEquals('bool', $method->getReturnType()?->getName());
+        expect($method->getName())->toBe('validateStatusTransition');
+        expect($method->getReturnType()->getName())->toBe('void');
 
         $parameters = $method->getParameters();
-        $this->assertCount(2, $parameters);
-        $this->assertEquals('model', $parameters[0]->getName());
-        $this->assertEquals('causerId', $parameters[1]->getName());
-    }
-}
+        expect($parameters)->toHaveCount(2);
+        expect($parameters[0]->getName())->toBe('model');
+        expect($parameters[0]->getType()->getName())->toBe('LaravelApproval\LaravelApproval\Contracts\ApprovableInterface');
+        expect($parameters[1]->getName())->toBe('newStatus');
+        expect($parameters[1]->getType()->getName())->toBe('LaravelApproval\LaravelApproval\Enums\ApprovalStatus');
+    });
+
+    it('defines validateModelConfiguration method', function () {
+        $reflection = new ReflectionClass(ApprovalValidatorInterface::class);
+        $method = $reflection->getMethod('validateModelConfiguration');
+
+        expect($method->getName())->toBe('validateModelConfiguration');
+        expect($method->getReturnType()->getName())->toBe('void');
+
+        $parameters = $method->getParameters();
+        expect($parameters)->toHaveCount(1);
+        expect($parameters[0]->getName())->toBe('model');
+        expect($parameters[0]->getType()->getName())->toBe('LaravelApproval\LaravelApproval\Contracts\ApprovableInterface');
+    });
+});

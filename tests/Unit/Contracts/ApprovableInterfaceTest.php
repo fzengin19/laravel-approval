@@ -19,6 +19,7 @@ final class ApprovableInterfaceTest extends TestCase
         $reflection = new \ReflectionClass(ApprovableInterface::class);
 
         $expectedMethods = [
+            'getKey',
             'approve',
             'reject',
             'setPending',
@@ -121,7 +122,7 @@ final class ApprovableInterfaceTest extends TestCase
         $method = $reflection->getMethod('getApprovalConfig');
 
         $this->assertTrue($method->isPublic());
-        $this->assertEquals('array', $method->getReturnType()?->getName());
+        $this->assertNull($method->getReturnType()); // No return type for flexibility
         $this->assertCount(0, $method->getParameters());
     }
 
@@ -136,5 +137,15 @@ final class ApprovableInterfaceTest extends TestCase
             $this->assertTrue($method->isPublic());
             $this->assertCount(0, $method->getParameters());
         }
+    }
+
+    public function test_approvable_interface_get_key_method(): void
+    {
+        $reflection = new \ReflectionClass(ApprovableInterface::class);
+        $method = $reflection->getMethod('getKey');
+
+        $this->assertTrue($method->isPublic());
+        $this->assertNull($method->getReturnType()); // No return type specified for compatibility
+        $this->assertCount(0, $method->getParameters());
     }
 }

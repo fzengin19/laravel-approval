@@ -4,48 +4,32 @@ declare(strict_types=1);
 
 namespace LaravelApproval\LaravelApproval\Contracts;
 
-use Illuminate\Database\Eloquent\Model;
 use LaravelApproval\LaravelApproval\Enums\ApprovalStatus;
 
 interface ApprovalValidatorInterface
 {
     /**
-     * Validate approval data array.
+     * Validate approval operation.
      */
-    public function validateApprovalData(array $data): bool;
+    public function validateApproval(ApprovableInterface $model, ?int $causerId = null): void;
 
     /**
-     * Validate approval status.
+     * Validate rejection operation.
      */
-    public function validateStatus(ApprovalStatus|string $status): bool;
+    public function validateRejection(ApprovableInterface $model, ?int $causerId = null, ?string $reason = null, ?string $comment = null): void;
 
     /**
-     * Validate causer ID.
+     * Validate pending operation.
      */
-    public function validateCauser(int|string|null $causerId): bool;
+    public function validatePending(ApprovableInterface $model, ?int $causerId = null): void;
 
     /**
-     * Validate model for approval operations.
+     * Validate status transition.
      */
-    public function validateModel(Model $model): bool;
+    public function validateStatusTransition(ApprovableInterface $model, ApprovalStatus $newStatus): void;
 
     /**
-     * Validate rejection reason.
+     * Validate model configuration.
      */
-    public function validateRejectionReason(string $reason, string $modelClass): bool;
-
-    /**
-     * Check if user can approve the model.
-     */
-    public function canApprove(Model $model, int $causerId): bool;
-
-    /**
-     * Check if user can reject the model.
-     */
-    public function canReject(Model $model, int $causerId): bool;
-
-    /**
-     * Check if user can set the model to pending.
-     */
-    public function canSetPending(Model $model, int $causerId): bool;
+    public function validateModelConfiguration(ApprovableInterface $model): void;
 }
