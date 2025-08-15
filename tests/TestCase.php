@@ -15,6 +15,13 @@ class TestCase extends Orchestra
         Factory::guessFactoryNamesUsing(
             fn (string $modelName) => 'LaravelApproval\\LaravelApproval\\Database\\Factories\\'.class_basename($modelName).'Factory'
         );
+
+        // Run package migration
+        $migration = include __DIR__.'/../database/migrations/create_approval_table.php.stub';
+        $migration->up();
+
+        // Load test migrations using Laravel's migration system
+        $this->loadMigrationsFrom(__DIR__.'/Database/Migrations');
     }
 
     protected function getPackageProviders($app)
@@ -32,20 +39,5 @@ class TestCase extends Orchestra
             'database' => ':memory:',
             'prefix' => '',
         ]);
-
-        // Run package migrations
-        $migration = include __DIR__.'/../database/migrations/create_approval_table.php.stub';
-        $migration->up();
-
-        // Run test migrations using glob for better compatibility
-        $migrationFiles = glob(__DIR__.'/Database/Migrations/*.php');
-        sort($migrationFiles); // Ensure consistent order
-
-        foreach ($migrationFiles as $migrationPath) {
-            $migration = include $migrationPath;
-            if ($migration && is_object($migration)) {
-                $migration->up();
-            }
-        }
     }
 }
