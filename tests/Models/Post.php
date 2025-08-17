@@ -6,14 +6,12 @@ namespace LaravelApproval\LaravelApproval\Tests\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
 use LaravelApproval\LaravelApproval\Contracts\ApprovableInterface;
-use LaravelApproval\LaravelApproval\Enums\ApprovalStatus;
+use LaravelApproval\LaravelApproval\Traits\HasApprovals;
 
 class Post extends Model implements ApprovableInterface
 {
-    use HasFactory;
+    use HasApprovals, HasFactory;
 
     protected $fillable = [
         'title',
@@ -26,6 +24,11 @@ class Post extends Model implements ApprovableInterface
     }
 
     // ApprovableInterface implementation (minimal for testing)
+    public function getKey()
+    {
+        return $this->getKeyName() ? $this->{$this->getKeyName()} : null;
+    }
+
     public function approve(int $causerId): self
     {
         return $this;
@@ -41,25 +44,7 @@ class Post extends Model implements ApprovableInterface
         return $this;
     }
 
-    public function isApproved(): bool
-    {
-        return false;
-    }
-
-    public function isPending(): bool
-    {
-        return false;
-    }
-
-    public function isRejected(): bool
-    {
-        return false;
-    }
-
-    public function getApprovalStatus(): ?ApprovalStatus
-    {
-        return null;
-    }
+    // Status methods come from HasApprovals trait
 
     public function getApprovalConfig(): array
     {
@@ -77,14 +62,5 @@ class Post extends Model implements ApprovableInterface
         ];
     }
 
-    public function approvals(): MorphMany
-    {
-        return $this->morphMany(\LaravelApproval\LaravelApproval\Models\Approval::class, 'approvable');
-    }
-
-    public function latestApproval(): MorphOne
-    {
-        return $this->morphOne(\LaravelApproval\LaravelApproval\Models\Approval::class, 'approvable')
-            ->latestOfMany();
-    }
+    // Relationship methods come from HasApprovals trait
 }
