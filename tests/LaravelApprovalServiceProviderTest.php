@@ -9,6 +9,12 @@ use LaravelApproval\Core\ApprovalEventDispatcher;
 use LaravelApproval\Core\ApprovalRepository;
 use LaravelApproval\Core\ApprovalValidator;
 use LaravelApproval\Core\WebhookDispatcher;
+use LaravelApproval\Events\ModelApproved;
+use LaravelApproval\Events\ModelApproving;
+use LaravelApproval\Events\ModelPending;
+use LaravelApproval\Events\ModelRejected;
+use LaravelApproval\Events\ModelRejecting;
+use LaravelApproval\Events\ModelSettingPending;
 use LaravelApproval\Services\ApprovalService;
 use LaravelApproval\Services\StatisticsService;
 use PHPUnit\Framework\Attributes\Test;
@@ -67,11 +73,11 @@ class LaravelApprovalServiceProviderTest extends TestCase
     {
         $dispatcher = $this->app->get('events');
 
-        $this->assertTrue($dispatcher->hasListeners(\LaravelApproval\Events\ModelApproved::class));
-        $this->assertTrue($dispatcher->hasListeners(\LaravelApproval\Events\ModelRejected::class));
-        $this->assertTrue($dispatcher->hasListeners(\LaravelApproval\Events\ModelPending::class));
-        $this->assertTrue($dispatcher->hasListeners(\LaravelApproval\Events\ModelApproving::class));
-        $this->assertTrue($dispatcher->hasListeners(\LaravelApproval\Events\ModelRejecting::class));
-        $this->assertTrue($dispatcher->hasListeners(\LaravelApproval\Events\ModelSettingPending::class));
+        $this->assertTrue($dispatcher->hasListeners(ModelApproved::class));
+        $this->assertTrue($dispatcher->hasListeners(ModelRejected::class));
+        $this->assertTrue($dispatcher->hasListeners(ModelPending::class));
+        $this->assertTrue($dispatcher->hasListeners(ModelApproving::class));
+        $this->assertTrue($dispatcher->hasListeners(ModelRejecting::class));
+        $this->assertTrue($dispatcher->hasListeners(ModelSettingPending::class));
     }
 }

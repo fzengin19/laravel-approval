@@ -2,13 +2,13 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
-use LaravelApproval\Exceptions\ApprovalException;
-use LaravelApproval\Exceptions\UnauthorizedApprovalException;
 use LaravelApproval\Enums\ApprovalStatus;
 use LaravelApproval\Events\ModelApproved;
 use LaravelApproval\Events\ModelApproving;
 use LaravelApproval\Events\ModelRejected;
 use LaravelApproval\Events\ModelRejecting;
+use LaravelApproval\Exceptions\ApprovalException;
+use LaravelApproval\Exceptions\UnauthorizedApprovalException;
 use Tests\Models\Post;
 use Tests\Models\User;
 

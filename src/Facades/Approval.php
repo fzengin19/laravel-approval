@@ -3,6 +3,7 @@
 namespace LaravelApproval\Facades;
 
 use Illuminate\Support\Facades\Facade;
+use LaravelApproval\Services\ApprovalService;
 
 /**
  * @method static void approve(\LaravelApproval\Contracts\ApprovableInterface $model, ?int $userId = null, ?string $comment = null)
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array getDetailedStatistics(string $modelClass)
  * @method static array getStatisticsForDateRange(string $modelClass, string $startDate, string $endDate)
  *
- * @see \LaravelApproval\Services\ApprovalService
+ * @see ApprovalService
  */
 class Approval extends Facade
 {

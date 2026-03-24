@@ -3,6 +3,8 @@
 namespace LaravelApproval\Traits;
 
 use LaravelApproval\Core\ApprovalManager;
+use LaravelApproval\Exceptions\InvalidApprovalStatusException;
+use LaravelApproval\Exceptions\UnauthorizedApprovalException;
 
 trait ApprovalActions
 {
@@ -10,8 +12,8 @@ trait ApprovalActions
      * Approve the model.
      *
      *
-     * @throws \LaravelApproval\Exceptions\InvalidApprovalStatusException
-     * @throws \LaravelApproval\Exceptions\UnauthorizedApprovalException
+     * @throws InvalidApprovalStatusException
+     * @throws UnauthorizedApprovalException
      */
     public function approve(?int $userId = null, ?string $comment = null): void
     {
@@ -22,8 +24,8 @@ trait ApprovalActions
      * Reject the model.
      *
      *
-     * @throws \LaravelApproval\Exceptions\InvalidApprovalStatusException
-     * @throws \LaravelApproval\Exceptions\UnauthorizedApprovalException
+     * @throws InvalidApprovalStatusException
+     * @throws UnauthorizedApprovalException
      */
     public function reject(?int $userId = null, ?string $reason = null, ?string $comment = null): void
     {
@@ -34,8 +36,8 @@ trait ApprovalActions
      * Set the model to pending status.
      *
      *
-     * @throws \LaravelApproval\Exceptions\InvalidApprovalStatusException
-     * @throws \LaravelApproval\Exceptions\UnauthorizedApprovalException
+     * @throws InvalidApprovalStatusException
+     * @throws UnauthorizedApprovalException
      */
     public function setPending(?int $userId = null, ?string $comment = null): void
     {

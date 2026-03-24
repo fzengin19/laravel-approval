@@ -2,6 +2,7 @@
 
 namespace LaravelApproval\Tests\Traits;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use LaravelApproval\Enums\ApprovalStatus;
@@ -266,7 +267,7 @@ it('handles webhook connection timeouts gracefully', function () {
     LogFake::bind();
     // This fake callback will throw a ConnectionException for any request.
     Http::fake(function ($request) {
-        throw new \Illuminate\Http\Client\ConnectionException('Connection timed out');
+        throw new ConnectionException('Connection timed out');
     });
 
     config([
@@ -286,6 +287,6 @@ it('handles webhook connection timeouts gracefully', function () {
         return $log->level === 'warning'
             && $log->message === 'Webhook failed to dispatch.'
             && $log->context['event'] === 'model_approved'
-            && $log->context['exception_class'] === \Illuminate\Http\Client\ConnectionException::class;
+            && $log->context['exception_class'] === ConnectionException::class;
     });
 });

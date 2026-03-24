@@ -2,9 +2,11 @@
 
 namespace LaravelApproval\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 use LaravelApproval\Database\Factories\ApprovalFactory;
 use LaravelApproval\Enums\ApprovalStatus;
 
@@ -14,7 +16,7 @@ use LaravelApproval\Enums\ApprovalStatus;
  * @property ApprovalStatus $status
  * @property int|null $caused_by_id
  * @property string|null $caused_by_type
- * @property \Illuminate\Support\Carbon|null $responded_at
+ * @property Carbon|null $responded_at
  * @property-read Model $approvable
  * @property-read Model|null $causer
  */
@@ -25,8 +27,6 @@ class Approval extends Model
 
     /**
      * Create a new factory instance for the model.
-     *
-     * @return ApprovalFactory
      */
     protected static function newFactory(): ApprovalFactory
     {
@@ -76,8 +76,8 @@ class Approval extends Model
     /**
      * Scope a query to only include pending approvals.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder<self>  $query
-     * @return \Illuminate\Database\Eloquent\Builder<self>
+     * @param  Builder<self>  $query
+     * @return Builder<self>
      */
     public function scopePending($query)
     {
@@ -87,8 +87,8 @@ class Approval extends Model
     /**
      * Scope a query to only include approved approvals.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder<self>  $query
-     * @return \Illuminate\Database\Eloquent\Builder<self>
+     * @param  Builder<self>  $query
+     * @return Builder<self>
      */
     public function scopeApproved($query)
     {
@@ -98,8 +98,8 @@ class Approval extends Model
     /**
      * Scope a query to only include rejected approvals.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder<self>  $query
-     * @return \Illuminate\Database\Eloquent\Builder<self>
+     * @param  Builder<self>  $query
+     * @return Builder<self>
      */
     public function scopeRejected($query)
     {

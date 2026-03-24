@@ -4,8 +4,8 @@ namespace LaravelApproval\Core;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use LaravelApproval\Contracts\ApprovableInterface;
 use LaravelApproval\Contracts\ApprovalRepositoryInterface;
 use LaravelApproval\Models\Approval;
