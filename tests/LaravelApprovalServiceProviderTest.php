@@ -11,10 +11,11 @@ use LaravelApproval\Core\ApprovalValidator;
 use LaravelApproval\Core\WebhookDispatcher;
 use LaravelApproval\Services\ApprovalService;
 use LaravelApproval\Services\StatisticsService;
+use PHPUnit\Framework\Attributes\Test;
 
 class LaravelApprovalServiceProviderTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function it_registers_the_main_approval_service_as_a_singleton()
     {
         $this->assertInstanceOf(
@@ -28,7 +29,7 @@ class LaravelApprovalServiceProviderTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_binds_interfaces_to_their_concrete_implementations()
     {
         $this->assertInstanceOf(
@@ -47,7 +48,7 @@ class LaravelApprovalServiceProviderTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_registers_core_components_as_singletons()
     {
         $this->assertSame(
@@ -61,7 +62,7 @@ class LaravelApprovalServiceProviderTest extends TestCase
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_registers_event_listeners_correctly()
     {
         $dispatcher = $this->app->get('events');

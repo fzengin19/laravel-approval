@@ -7,6 +7,7 @@ use LaravelApproval\Core\ApprovalManager;
 use LaravelApproval\Exceptions\UnauthorizedApprovalException;
 use LaravelApproval\Models\Approval;
 use Tests\Models\Post;
+use Tests\Models\User;
 
 beforeEach(function () {
     $this->repository = Mockery::mock(ApprovalRepositoryInterface::class);
@@ -15,6 +16,7 @@ beforeEach(function () {
     $this->manager = new ApprovalManager($this->repository, $this->validator, $this->eventDispatcher);
 
     $this->post = Post::create(['title' => 'Test Post', 'content' => 'Content']);
+    $this->user = User::factory()->create();
     $this->approval = new Approval(['status' => 'approved', 'caused_by' => 1]);
 
     // Default expectations for happy paths
@@ -22,6 +24,7 @@ beforeEach(function () {
     $this->validator->shouldReceive('validateApproval')->andReturn(true);
     $this->validator->shouldReceive('canReject')->andReturn(true);
     $this->validator->shouldReceive('validateRejection')->andReturn(true);
+    $this->validator->shouldReceive('validateRejectionReason')->andReturn(true);
     $this->validator->shouldReceive('canSetPending')->andReturn(true);
     $this->validator->shouldReceive('validatePending')->andReturn(true);
 });
@@ -31,7 +34,7 @@ it('approves a model correctly', function () {
     $this->repository->shouldReceive('create')->once()->andReturn($this->approval);
     $this->eventDispatcher->shouldReceive('dispatchApproved')->once();
 
-    $this->manager->approve($this->post, 1);
+    $this->manager->approve($this->post, $this->user->id);
 });
 
 it('rejects a model correctly', function () {
@@ -39,7 +42,7 @@ it('rejects a model correctly', function () {
     $this->repository->shouldReceive('create')->once()->andReturn($this->approval);
     $this->eventDispatcher->shouldReceive('dispatchRejected')->once();
 
-    $this->manager->reject($this->post, 1, 'spam', 'test comment');
+    $this->manager->reject($this->post, $this->user->id, 'spam', 'test comment');
 });
 
 it('sets a model to pending correctly', function () {
@@ -47,7 +50,7 @@ it('sets a model to pending correctly', function () {
     $this->repository->shouldReceive('create')->once()->andReturn($this->approval);
     $this->eventDispatcher->shouldReceive('dispatchPending')->once();
 
-    $this->manager->setPending($this->post, 1);
+    $this->manager->setPending($this->post, $this->user->id);
 });
 
 it('returns early when validation fails for approval', function () {
@@ -61,7 +64,7 @@ it('returns early when validation fails for approval', function () {
 
     $this->expectException(UnauthorizedApprovalException::class);
 
-    $manager->approve($this->post, 1);
+    $manager->approve($this->post, $this->user->id);
 
     $eventDispatcher->shouldNotHaveReceived('dispatchApproving');
     $repository->shouldNotHaveReceived('create');
@@ -74,7 +77,7 @@ it('uses upsert mode when configured', function () {
     $this->repository->shouldReceive('updateOrCreate')->once()->andReturn($this->approval);
     $this->eventDispatcher->shouldReceive('dispatchApproved')->once();
 
-    $this->manager->approve($this->post, 1);
+    $this->manager->approve($this->post, $this->user->id);
 });
 
 it('uses insert mode when configured', function () {
@@ -84,5 +87,5 @@ it('uses insert mode when configured', function () {
     $this->repository->shouldReceive('create')->once()->andReturn($this->approval);
     $this->eventDispatcher->shouldReceive('dispatchApproved')->once();
 
-    $this->manager->approve($this->post, 1);
+    $this->manager->approve($this->post, $this->user->id);
 });

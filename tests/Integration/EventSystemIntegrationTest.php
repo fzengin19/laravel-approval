@@ -5,10 +5,12 @@ use LaravelApproval\Events\ModelApproved;
 use LaravelApproval\Events\ModelPending;
 use LaravelApproval\Events\ModelRejected;
 use Tests\Models\Post;
+use Tests\Models\User;
 
 beforeEach(function () {
     config(['approvals.default.events_enabled' => true]);
     config(['approvals.default.events_logging' => true]);
+    $this->user = User::factory()->create();
 });
 
 it('can dispatch and handle ModelApproved event', function () {
@@ -17,7 +19,7 @@ it('can dispatch and handle ModelApproved event', function () {
     Event::fake([ModelApproved::class]);
 
     // Perform the action that should trigger the event
-    $post->approve(1);
+    $post->approve($this->user->id);
 
     // Assert the event was dispatched
     Event::assertDispatched(ModelApproved::class);
@@ -28,7 +30,7 @@ it('can dispatch and handle ModelRejected event', function () {
 
     Event::fake([ModelRejected::class]);
 
-    $post->reject(1, 'spam', 'This is spam content');
+    $post->reject($this->user->id, 'spam', 'This is spam content');
 
     Event::assertDispatched(ModelRejected::class);
 });
@@ -38,7 +40,7 @@ it('can dispatch and handle ModelPending event', function () {
 
     Event::fake([ModelPending::class]);
 
-    $post->setPending(1);
+    $post->setPending($this->user->id);
 
     Event::assertDispatched(ModelPending::class);
 });
@@ -48,8 +50,8 @@ it('can handle multiple events in sequence', function () {
 
     Event::fake([ModelPending::class, ModelApproved::class]);
 
-    $post->setPending(1);
-    $post->approve(1);
+    $post->setPending($this->user->id);
+    $post->approve($this->user->id);
 
     Event::assertDispatched(ModelPending::class);
     Event::assertDispatched(ModelApproved::class);
@@ -60,7 +62,7 @@ it('can handle events with context and metadata', function () {
 
     Event::fake([ModelApproved::class]);
 
-    $post->approve(1);
+    $post->approve($this->user->id);
 
     Event::assertDispatched(ModelApproved::class, function ($event) use ($post) {
         return $event->model->id === $post->id;

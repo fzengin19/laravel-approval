@@ -29,7 +29,7 @@ it('dispatches webhooks when webhooks are enabled', function () {
     ]);
 
     $post = Post::factory()->create();
-    $post->approve(1);
+    $post->approve($this->user->id);
 
     Http::assertSent(function ($request) {
         return $request->url() === 'https://api.example.com/webhooks/approval' &&
@@ -51,7 +51,7 @@ it('does not dispatch webhooks when webhooks are disabled', function () {
     ]);
 
     $post = Post::factory()->create();
-    $post->approve(1);
+    $post->approve($this->user->id);
 
     Http::assertNothingSent();
 });
@@ -73,7 +73,7 @@ it('respects model-specific webhook configuration', function () {
     ]);
 
     $post = Post::factory()->create();
-    $post->approve(1);
+    $post->approve($this->user->id);
 
     Http::assertSent(function ($request) {
         return $request->url() === 'https://api.example.com/webhooks/post-approval';
@@ -94,8 +94,8 @@ it('dispatches webhooks for all events when no specific events configured', func
     ]);
 
     $post = Post::factory()->create();
-    $post->approve(1);
-    $post->reject(1, 'spam', 'This is spam');
+    $post->approve($this->user->id);
+    $post->reject($this->user->id, 'spam', 'This is spam');
 
     Http::assertSentCount(4);
 });
@@ -114,9 +114,9 @@ it('dispatches webhooks for specific events only', function () {
     ]);
 
     $post = Post::factory()->create();
-    $post->approve(1);
-    $post->reject(1, 'spam', 'This is spam');
-    $post->setPending(1);
+    $post->approve($this->user->id);
+    $post->reject($this->user->id, 'spam', 'This is spam');
+    $post->setPending($this->user->id);
 
     Http::assertSent(function ($request) {
         return $request['event'] === 'model_approved';
@@ -176,7 +176,7 @@ it('handles webhook failures gracefully', function () {
     ]);
 
     $post = Post::factory()->create();
-    $post->approve(1);
+    $post->approve($this->user->id);
 
     Log::assertLogged(function (LogEntry $log) {
         return $log->level === 'warning'
@@ -200,7 +200,7 @@ it('dispatches webhook for model_setting_pending event', function () {
     ]);
 
     $post = Post::factory()->create();
-    $post->setPending(1);
+    $post->setPending($this->user->id);
 
     Http::assertSent(function ($request) {
         return $request->url() === 'https://api.example.com/webhooks/pending' &&
@@ -280,7 +280,7 @@ it('handles webhook connection timeouts gracefully', function () {
     ]);
 
     $post = Post::factory()->create();
-    $post->approve(1);
+    $post->approve($this->user->id);
 
     Log::assertLogged(function (LogEntry $log) {
         return $log->level === 'warning'

@@ -4,16 +4,16 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/fzengin19/laravel-approval.svg?style=flat-square)](https://packagist.org/packages/fzengin19/laravel-approval)
 [![Code Coverage Status](https://img.shields.io/codecov/c/github/fzengin19/laravel-approval?style=flat-square)](https://codecov.io/gh/fzengin19/laravel-approval)
 
-A comprehensive approval system package for Laravel. Provides a powerful and flexible solution for managing approval statuses of your models. Developed with TDD approach, reliable code with high test coverage.
+A comprehensive approval system package for PHP 8.3+ and Laravel 10+. It provides a flexible way to manage approval statuses for your models. Developed with a TDD approach, with reliable code and high test coverage.
 
 ## ✨ Features
 
 - 🚀 **Easy Integration**: Integrate your models with approval system by just adding a trait.
 - ⚙️ **Flexible Configuration**: Two different modes (insert/upsert) and customizable settings.
 - 💡 **Configurable Initial State**: Define a default status for models that haven't been through an approval process yet.
-- 🧠 **Smart Rejection Handling**: Intelligent categorization of rejection reasons with predefined and custom options.
+- 🧠 **Smart Rejection Handling**: Normalizes unknown rejection reasons to `other` while preserving the original text in the comment.
 - 🔍 **Global Scope**: Automatically show only approved records with configurable behavior.
-- 🔔 **Comprehensive Event System**: 6 different events (pre/post status changes) using modern PHP 8.1+ features.
+- 🔔 **Comprehensive Event System**: 6 events with clear before/after transition timing and `causedBy` payloads.
 - 📊 **Statistics Service**: Built-in statistics calculation with percentages and model-specific data.
 - 🎭 **Facade Support**: Static API for easy usage with full IDE support.
 - 🖥️ **Artisan Commands**: View statistics via CLI with table formatting.
@@ -22,8 +22,8 @@ A comprehensive approval system package for Laravel. Provides a powerful and fle
 - 🌐 **Webhook Support**: Configurable webhook endpoints for external integrations.
 - 🎯 **Model-specific Configuration**: Override settings per model with inheritance.
 - 🔄 **Auto Pending**: Automatically set models to pending status on creation.
-- 🔗 **Polymorphic Causer**: Approval actions can be caused by any model, not just Users.
-- ✨ **Modern PHP**: Utilizes modern PHP features like Enums for type-safe statuses.
+- 🔗 **Polymorphic Approval Audit Trail**: Approval records keep a polymorphic `causer` relation to the configured user model.
+- ✨ **Modern PHP**: Utilizes PHP 8.3+ features and enums for type-safe statuses.
 - 📈 **Performance Optimized**: Indexed database fields and efficient queries.
 
 ## 🚀 Quick Start
@@ -68,6 +68,7 @@ class Post extends Model implements ApprovableInterface
 
 ```php
 use LaravelApproval\Enums\ApprovalStatus;
+use LaravelApproval\Facades\Approval;
 
 // Create a post
 $post = Post::create([
@@ -93,19 +94,20 @@ $post->getApprovalStatus(); // Returns ApprovalStatus::APPROVED enum case
 // Use query scopes
 $approvedPosts = Post::approved()->get();
 $pendingPosts = Post::pending()->get();
-$rejectedPosts = Post->rejected()->get();
+$rejectedPosts = Post::rejected()->get();
 
 // Get statistics
 $stats = Approval::getStatistics(Post::class);
-
-That's it! Your model now has full approval functionality. 🎉
 ```
+
+That's it. Your model now has full approval functionality.
+
 ## 📦 Installation
 
 ### Requirements
 
-- PHP 8.1 or higher
-- Laravel 9 or higher
+- PHP 8.3 or higher
+- Laravel 10 or higher
 
 ### Install via Composer
 
@@ -141,9 +143,9 @@ return [
     'default' => [
         // Core Settings
         'mode' => 'insert',                    // 'insert' or 'upsert'
-        'auto_pending_on_create' => false,     // Auto pending when model is created
-        'show_only_approved_by_default' => false, // Is global scope active?
-        'auto_scope' => true,                  // Automatically add global scope
+        'auto_pending_on_create' => false,     // Automatically create a pending approval on model creation
+        'show_only_approved_by_default' => false, // When the global scope is registered, show only approved records by default
+        'auto_scope' => true,                  // Global master switch for registering the approval scope
         'default_status_for_unaudited' => null, // Default status for models with no approval record. Can be: null, 'pending', 'approved', 'rejected'.
 
         // Event Settings
@@ -151,15 +153,14 @@ return [
         'events_logging' => true,              // Log events
         'events_webhooks_enabled' => false,    // Enable webhooks
         'events_webhooks_endpoints' => [],     // Webhook endpoints
-        'events_custom_actions' => [           // Custom event actions
+        'events_custom_actions' => [           // Invokable class strings resolved through the container
             'model_approved' => [
-                // Example: function($event) { /* custom logic */ }
+                // Example: \App\ApprovalActions\HandleModelApproved::class
             ],
             // ... other events
         ],
-        
+
         // Rejection Settings
-        'allow_custom_reasons' => false,       // Allow custom rejection reasons
         'rejection_reasons' => [
             'inappropriate_content' => 'Inappropriate Content',
             'spam' => 'Spam',
@@ -176,6 +177,8 @@ return [
     ],
 ];
 ```
+
+`allow_custom_reasons` is kept for backward compatibility in the config shape, but unknown reasons are still normalized to `other`.
 
 **Note:** Approval statuses are managed by the `LaravelApproval\Enums\ApprovalStatus` enum:
 - `ApprovalStatus::PENDING`
@@ -214,7 +217,7 @@ $post->approve(1);
 // Reject with predefined reason
 $post->reject(1, 'spam', 'Additional details');
 
-// Reject with custom reason (automatically categorized as 'other' if not in predefined list)
+// Reject with an unknown reason (stored as `other` and folded into the comment)
 $post->reject(1, 'Custom reason', 'Additional details');
 
 // Get approval history
@@ -222,7 +225,7 @@ $allApprovals = $post->approvals; // All approval records (MorphMany)
 $latestApproval = $post->latestApproval; // Current approval record (MorphOne)
 
 // Get who caused the approval
-$causer = $post->latestApproval->causer; // Returns the User model instance (or other causer model)
+$causer = $post->latestApproval->causer; // Returns the configured user model instance via the polymorphic causer relation
 ```
 
 ### Query Scopes
@@ -291,52 +294,30 @@ $post->reject(1);      // Update existing record
 
 ### Smart Rejection Handling
 
-The reject() method intelligently handles rejection reasons with automatic categorization:
+The `reject()` method stores configured reasons directly and normalizes unknown reasons to `other`:
 
 ```php
 // Using predefined reason
 $post->reject(1, 'spam', 'Additional details');
 // Result: rejection_reason = 'spam', rejection_comment = 'Additional details'
 
-// Using custom reason (when allowed)
+// Using an unknown reason
 $post->reject(1, 'copyright_violation', 'Image belongs to Getty Images');
-// Result: rejection_reason = 'copyright_violation', rejection_comment = 'Image belongs to Getty Images'
-
-// Using custom reason (when not allowed)
-$post->reject(1, 'custom_reason', 'Custom rejection reason');
-// Result: rejection_reason = 'other', rejection_comment = 'custom_reason - Custom rejection reason'
+// Result: rejection_reason = 'other', rejection_comment = 'copyright_violation - Image belongs to Getty Images'
 ```
 
 **Validation Rules:**
 - reason field: maximum 255 characters (string field limit)
 - comment field: no length limit (TEXT field)
-- Custom reasons can be enabled/disabled per model
-
-#### Custom Rejection Reasons
-
-Control whether custom rejection reasons are allowed in your config/approvals.php:
-
-```php
-'default' => [
-    'allow_custom_reasons' => false,  // Set to true to allow globally
-    // ... other settings
-],
-
-'models' => [
-    'App\Models\Post' => [
-        'allow_custom_reasons' => true,  // Allow custom reasons for Post model
-        // ... other settings
-    ],
-    'App\Models\Comment' => [
-        'allow_custom_reasons' => false, // Only predefined reasons for Comment model
-        // ... other settings
-    ],
-],
-```
 
 ### Global Scope
 
-When global scope is active, only approved records are visible by default:
+`auto_scope` and `show_only_approved_by_default` do different jobs:
+
+- `auto_scope` is the global master switch that registers the package scope on approvable models.
+- `show_only_approved_by_default` controls whether that scope filters a given model down to approved records by default.
+
+When both are enabled, only approved records are visible by default:
 
 ```php
 // Only approved posts (when global scope is enabled)
@@ -345,30 +326,21 @@ $posts = Post::all();
 // To see all posts (bypass global scope)
 $allPosts = Post::withUnapproved()->get();
 
-// Check if global scope is active for this model
+// Check whether this model is configured to hide unapproved rows by default
 $showOnlyApproved = config('approvals.models.' . Post::class . '.show_only_approved_by_default', 
                           config('approvals.default.show_only_approved_by_default', false));
 ```
 
-#### Auto Scope Configuration
-
-Control whether the global scope is automatically applied in your config/approvals.php:
+The scope is registered for approvable models only when `approvals.default.auto_scope` is enabled:
 
 ```php
 'default' => [
-    'auto_scope' => true,  // Set to false to disable globally
+    'auto_scope' => true,  // Register the global scope for approvable models
     // ... other settings
-],
-
-'models' => [
-    'App\Models\Post' => [
-        'auto_scope' => false,  // Disable for specific model
-        // ... other settings
-    ],
 ],
 ```
 
-Or manually apply the scope when needed:
+If `auto_scope` is disabled, you can still apply the scope manually when needed:
 
 ```php
 use LaravelApproval\Scopes\ApprovableScope;
@@ -411,7 +383,6 @@ Override default settings for specific models in your config/approvals.php. Only
         'auto_pending_on_create' => true,      // Auto pending for this model
         'show_only_approved_by_default' => true, // Global scope active for this model
         'events_enabled' => false,             // No events for this model
-        'allow_custom_reasons' => true,        // Allow custom rejection reasons
         'rejection_reasons' => [               // Custom rejection reasons
             'inappropriate_content' => 'Inappropriate Content',
             'spam' => 'Spam',
@@ -426,7 +397,6 @@ Override default settings for specific models in your config/approvals.php. Only
         'auto_pending_on_create' => false,     // No auto pending for this model
         'events_enabled' => true,              // Events enabled for this model
         'events_logging' => false,             // No logging for this model
-        'allow_custom_reasons' => false,       // Only predefined reasons
         'rejection_reasons' => [               // Different rejection reasons
             'spam' => 'Spam',
             'harassment' => 'Harassment',
@@ -465,15 +435,17 @@ Listen to events on status changes. The package provides 6 different events with
 
 ### Available Events
 
-**Pre-events** (Triggered before status change):
+**Before persistence**:
 - `LaravelApproval\Events\ModelApproving`
 - `LaravelApproval\Events\ModelRejecting`
-- `LaravelApproval\Events\ModelSettingPending`
 
-**Post-events** (Triggered after status change):
+**After persistence**:
 - `LaravelApproval\Events\ModelApproved`
 - `LaravelApproval\Events\ModelRejected`
+- `LaravelApproval\Events\ModelSettingPending`
 - `LaravelApproval\Events\ModelPending`
+
+`ModelSettingPending` is dispatched after the pending approval record is saved and immediately before `ModelPending`.
 
 ### Event Usage
 
@@ -486,6 +458,7 @@ Event::listen(ModelApproved::class, function (ModelApproved $event) {
     // Access event properties directly (they are public readonly)
     $model = $event->model;
     $approval = $event->approval;
+    $causedBy = $event->causedBy;
     $context = $event->context;
     
     // Actions to take when approved
@@ -499,6 +472,7 @@ Event::listen(ModelRejected::class, function (ModelRejected $event) {
     // Actions to take when rejected
     \Log::info('Model rejected', [
         'model' => get_class($model),
+        'caused_by' => $event->causedBy,
         'reason' => $event->reason,
         'comment' => $event->comment,
     ]);
@@ -518,22 +492,22 @@ Configure events globally or per model in your `config/approvals.php`:
     'events_webhooks_endpoints' => [],     // Webhook endpoints
     'events_custom_actions' => [           // Custom event actions
         'model_approved' => [
-            // Example: function(ModelApproved $event) { /* custom logic */ }
+            // Example: \App\ApprovalActions\HandleModelApproved::class
         ],
         'model_rejected' => [
-            // Example: function(ModelRejected $event) { /* custom logic */ }
+            // Example: \App\ApprovalActions\HandleModelRejected::class
         ],
         'model_pending' => [
-            // Example: function(ModelPending $event) { /* custom logic */ }
+            // Example: \App\ApprovalActions\HandleModelPending::class
         ],
         'model_approving' => [
-            // Example: function(ModelApproving $event) { /* custom logic */ }
+            // Example: \App\ApprovalActions\HandleModelApproving::class
         ],
         'model_rejecting' => [
-            // Example: function(ModelRejecting $event) { /* custom logic */ }
+            // Example: \App\ApprovalActions\HandleModelRejecting::class
         ],
         'model_setting_pending' => [
-            // Example: function(ModelSettingPending $event) { /* custom logic */ }
+            // Example: \App\ApprovalActions\HandleModelSettingPending::class
         ],
     ],
     // ... other settings
@@ -572,16 +546,34 @@ Configure events globally or per model in your `config/approvals.php`:
 ],
 ```
 
+Configurable actions can be invokable classes:
+
+Closures are not config-cache-safe, so use class strings here instead.
+
+```php
+<?php
+
+namespace App\ApprovalActions;
+
+use LaravelApproval\Events\ModelApproved;
+
+final class HandleModelApproved
+{
+    public function __invoke(ModelApproved $event): void
+    {
+        // Handle the approval event here.
+    }
+}
+```
+
 ### Event Properties
 
-Each event object contains public `readonly` properties for easy access:
+Event payloads are intentionally not identical across all six events:
 
-- `model`: The model that triggered the event (`ApprovableInterface&Model`)
-- `approval`: The approval record (`Approval`)
-- `reason`: Rejection reason (`?string`, if applicable)
-- `comment`: Rejection comment (`?string`, if applicable)
-- `userId`: User ID who performed the action (`?int`)
-- `context`: Additional context data (`array`)
+- All events expose `model`, `causedBy`, `context`, and `metadata`.
+- Post-save events expose `approval`: `ModelApproved`, `ModelRejected`, `ModelSettingPending`, and `ModelPending`.
+- Rejection events expose `reason`: `ModelRejecting` and `ModelRejected`.
+- Comment-bearing events expose `comment`: approving, approved, rejecting, rejected, setting pending, and pending.
 
 ## 🎭 Facade Usage
 
@@ -619,6 +611,9 @@ $allStats = Approval::getAllStatistics();
 //     'App\Models\Comment' => [...],
 //     'App\Models\Product' => [...],
 // ]
+
+// Passing a model instance to getModelStatistics() uses its class.
+$sameStats = Approval::getModelStatistics($post);
 ```
 
 ## 🖥️ Artisan Commands
@@ -757,7 +752,7 @@ Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
 Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
 
-## ��‍💻 Credits
+## 👨‍💻 Credits
 
 - [Fatih Zengin](https://github.com/fzengin19)
 - [All Contributors](../../contributors)

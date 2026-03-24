@@ -8,6 +8,9 @@ use LaravelApproval\Models\Approval;
 use Tests\Models\Post;
 use Tests\Models\User;
 
+/**
+ * @extends Factory<Approval>
+ */
 class ApprovalFactory extends Factory
 {
     protected $model = Approval::class;

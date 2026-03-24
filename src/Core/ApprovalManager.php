@@ -8,6 +8,7 @@ use LaravelApproval\Contracts\ApprovableInterface;
 use LaravelApproval\Contracts\ApprovalRepositoryInterface;
 use LaravelApproval\Contracts\ApprovalValidatorInterface;
 use LaravelApproval\Enums\ApprovalStatus;
+use LaravelApproval\Exceptions\ApprovalException;
 use LaravelApproval\Exceptions\UnauthorizedApprovalException;
 use LaravelApproval\Models\Approval;
 
@@ -32,16 +33,21 @@ class ApprovalManager
     public function approve(ApprovableInterface $model, ?int $userId = null, ?string $comment = null): void
     {
         $causer = $this->getCauser($userId);
+        $causerId = $this->getCauserId($causer);
 
-        if (! $this->validator->canApprove($model, $causer?->id)) {
-            throw UnauthorizedApprovalException::cannotApprove($causer?->id);
+        if ($userId !== null && $causer === null) {
+            throw UnauthorizedApprovalException::cannotApprove($userId);
         }
 
-        if (! $this->validator->validateApproval($model, $causer?->id)) {
-            throw UnauthorizedApprovalException::cannotApprove($causer?->id);
+        if (! $this->validator->canApprove($model, $causerId)) {
+            throw UnauthorizedApprovalException::cannotApprove($causerId);
         }
 
-        $this->eventDispatcher->dispatchApproving($model, $causer?->id, $comment);
+        if (! $this->validator->validateApproval($model, $causerId)) {
+            throw UnauthorizedApprovalException::cannotApprove($causerId);
+        }
+
+        $this->eventDispatcher->dispatchApproving($model, $causerId, $comment);
 
         $data = [
             'status' => ApprovalStatus::APPROVED,
@@ -51,25 +57,31 @@ class ApprovalManager
         ];
 
         $approval = $this->saveApproval($model, $data, $causer);
+        $this->syncModelApprovalRelations($model, $approval);
 
-        $this->eventDispatcher->dispatchApproved($model, $approval, $causer?->id, $comment);
+        $this->eventDispatcher->dispatchApproved($model, $approval, $causerId, $comment);
     }
 
     public function reject(ApprovableInterface $model, ?int $userId = null, ?string $reason = null, ?string $comment = null): void
     {
         $causer = $this->getCauser($userId);
+        $causerId = $this->getCauserId($causer);
 
-        if (! $this->validator->canReject($model, $causer?->id)) {
-            throw UnauthorizedApprovalException::cannotReject($causer?->id);
+        if ($userId !== null && $causer === null) {
+            throw UnauthorizedApprovalException::cannotReject($userId);
         }
 
-        if (! $this->validator->validateRejection($model, $causer?->id, $reason)) {
-            throw UnauthorizedApprovalException::cannotReject($causer?->id);
+        if (! $this->validator->canReject($model, $causerId)) {
+            throw UnauthorizedApprovalException::cannotReject($causerId);
+        }
+
+        if (! $this->validator->validateRejection($model, $causerId, $reason)) {
+            throw UnauthorizedApprovalException::cannotReject($causerId);
         }
 
         $rejectionData = $this->prepareRejectionData($model, $reason, $comment);
 
-        $this->eventDispatcher->dispatchRejecting($model, $causer?->id, $rejectionData['rejection_reason'], $rejectionData['rejection_comment']);
+        $this->eventDispatcher->dispatchRejecting($model, $causerId, $rejectionData['rejection_reason'], $rejectionData['rejection_comment']);
 
         $data = [
             'status' => ApprovalStatus::REJECTED,
@@ -78,20 +90,26 @@ class ApprovalManager
         ];
 
         $approval = $this->saveApproval($model, $data, $causer);
+        $this->syncModelApprovalRelations($model, $approval);
 
-        $this->eventDispatcher->dispatchRejected($model, $approval, $causer?->id, $rejectionData['rejection_reason'], $rejectionData['rejection_comment']);
+        $this->eventDispatcher->dispatchRejected($model, $approval, $causerId, $rejectionData['rejection_reason'], $rejectionData['rejection_comment']);
     }
 
     public function setPending(ApprovableInterface $model, ?int $userId = null, ?string $comment = null): void
     {
         $causer = $this->getCauser($userId);
+        $causerId = $this->getCauserId($causer);
 
-        if (! $this->validator->canSetPending($model, $causer?->id)) {
-            throw UnauthorizedApprovalException::cannotSetPending($causer?->id);
+        if ($userId !== null && $causer === null) {
+            throw UnauthorizedApprovalException::cannotSetPending($userId);
         }
 
-        if (! $this->validator->validatePending($model, $causer?->id)) {
-            throw UnauthorizedApprovalException::cannotSetPending($causer?->id);
+        if (! $this->validator->canSetPending($model, $causerId)) {
+            throw UnauthorizedApprovalException::cannotSetPending($causerId);
+        }
+
+        if (! $this->validator->validatePending($model, $causerId)) {
+            throw UnauthorizedApprovalException::cannotSetPending($causerId);
         }
         $data = [
             'status' => ApprovalStatus::PENDING,
@@ -101,26 +119,28 @@ class ApprovalManager
         ];
 
         $approval = $this->saveApproval($model, $data, $causer);
+        $this->syncModelApprovalRelations($model, $approval);
 
-        $this->eventDispatcher->dispatchSettingPending($model, $approval, $causer?->id, $comment);
+        $this->eventDispatcher->dispatchSettingPending($model, $approval, $causerId, $comment);
 
-        $this->eventDispatcher->dispatchPending($model, $approval, $causer?->id, $comment);
+        $this->eventDispatcher->dispatchPending($model, $approval, $causerId, $comment);
     }
 
     private function saveApproval(ApprovableInterface $model, array $data, ?Model $causer): Approval
     {
+        $eloquentModel = $this->asModel($model);
         $mode = $this->getModelConfig($model, 'mode', 'insert');
 
         if ($causer) {
             $data['caused_by_type'] = $causer->getMorphClass();
-            $data['caused_by_id'] = $causer->id;
+            $data['caused_by_id'] = (int) $causer->getKey();
         }
 
         if ($mode === 'upsert') {
-            return $this->repository->updateOrCreate($model, $data);
+            return $this->repository->updateOrCreate($eloquentModel, $data);
         }
 
-        return $this->repository->create($model, $data);
+        return $this->repository->create($eloquentModel, $data);
     }
 
     private function getCauser(?int $userId): ?Model
@@ -150,23 +170,25 @@ class ApprovalManager
         }
 
         $rejectionReasons = $this->getModelConfig($model, 'rejection_reasons', []);
-        $allowCustom = $this->getModelConfig($model, 'allow_custom_reasons', false);
 
         if (array_key_exists($reason, $rejectionReasons)) {
+            if (! $this->validator->validateRejectionReason($reason, $rejectionReasons)) {
+                throw ApprovalException::invalidRejectionReason($reason);
+            }
+
             return [
                 'rejection_reason' => $reason,
                 'rejection_comment' => $comment,
             ];
         }
 
-        if ($allowCustom) {
-            // In the original logic, a custom reason might be saved directly.
-            // Let's stick to the safer 'other' categorization for now.
-        }
-
         $finalComment = $reason;
         if ($comment) {
             $finalComment = ! empty($reason) ? "{$reason} - {$comment}" : $comment;
+        }
+
+        if (! $this->validator->validateRejectionReason('other', $rejectionReasons)) {
+            throw ApprovalException::invalidRejectionReason($reason);
         }
 
         return [
@@ -175,19 +197,32 @@ class ApprovalManager
         ];
     }
 
+    private function getCauserId(?Model $causer): ?int
+    {
+        return $causer ? (int) $causer->getKey() : null;
+    }
+
+    private function syncModelApprovalRelations(ApprovableInterface $model, Approval $approval): void
+    {
+        if (! $model instanceof Model) {
+            return;
+        }
+
+        $model->setRelation('latestApproval', $approval);
+        $model->unsetRelation('approvals');
+    }
+
     protected function getModelConfig(ApprovableInterface $model, string $key, $default = null)
     {
-        if (method_exists($model, 'getApprovalConfig')) {
-            return $model->getApprovalConfig($key, $default);
+        return $model->getApprovalConfig($key, $default);
+    }
+
+    private function asModel(ApprovableInterface $model): Model&ApprovableInterface
+    {
+        if (! $model instanceof Model) {
+            throw new \InvalidArgumentException('Approvable models must extend Eloquent Model.');
         }
 
-        $modelClass = get_class($model);
-        $modelsConfig = config('approvals.models', []);
-
-        if (isset($modelsConfig[$modelClass][$key])) {
-            return $modelsConfig[$modelClass][$key];
-        }
-
-        return config("approvals.default.{$key}", $default);
+        return $model;
     }
 }

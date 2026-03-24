@@ -20,9 +20,9 @@ interface StatisticsServiceInterface
     public function getAllStatistics(): array;
 
     /**
-     * Get approval statistics for a specific model instance.
+     * Get approval statistics for the given model's class.
      *
-     * @param  ApprovableInterface  $model  The model instance.
+     * @param  ApprovableInterface  $model  Any instance of the model class to inspect.
      * @return array An array with keys 'approved', 'rejected', 'pending', and 'total'.
      */
     public function getModelStatistics(ApprovableInterface $model): array;

@@ -5,6 +5,7 @@ namespace LaravelApproval\Tests\Core;
 use Illuminate\Support\Facades\Config;
 use LaravelApproval\Core\ApprovalValidator;
 use LaravelApproval\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Models\Post;
 
 class ApprovalValidatorTest extends TestCase
@@ -20,7 +21,7 @@ class ApprovalValidatorTest extends TestCase
         $this->post = Post::factory()->create();
     }
 
-    /** @test */
+    #[Test]
     public function validate_approval_validate_rejection_validate_pending_always_returns_true_by_default()
     {
         $this->assertTrue($this->validator->validateApproval($this->post, 1));
@@ -28,27 +29,27 @@ class ApprovalValidatorTest extends TestCase
         $this->assertTrue($this->validator->validatePending($this->post, 1));
     }
 
-    /** @test */
+    #[Test]
     public function validate_rejection_reason_returns_true_if_allowed_reasons_is_empty()
     {
         $this->assertTrue($this->validator->validateRejectionReason('spam', []));
     }
 
-    /** @test */
+    #[Test]
     public function validate_rejection_reason_returns_true_if_reason_is_allowed()
     {
         $allowed = ['spam' => 'Spam', 'other' => 'Other'];
         $this->assertTrue($this->validator->validateRejectionReason('spam', $allowed));
     }
 
-    /** @test */
+    #[Test]
     public function validate_rejection_reason_returns_false_if_reason_is_not_allowed()
     {
         $allowed = ['spam' => 'Spam', 'other' => 'Other'];
         $this->assertFalse($this->validator->validateRejectionReason('foo', $allowed));
     }
 
-    /** @test */
+    #[Test]
     public function can_approve_can_reject_can_set_pending_always_returns_true_by_default()
     {
         $this->assertTrue($this->validator->canApprove($this->post, 1));
@@ -56,27 +57,27 @@ class ApprovalValidatorTest extends TestCase
         $this->assertTrue($this->validator->canSetPending($this->post, 1));
     }
 
-    /** @test */
+    #[Test]
     public function validate_model_configuration_returns_true_for_default_config()
     {
         $this->assertTrue($this->validator->validateModelConfiguration($this->post));
     }
 
-    /** @test */
+    #[Test]
     public function validate_model_configuration_returns_false_for_invalid_mode()
     {
         config(['approvals.models.'.get_class($this->post).'.mode' => 'invalid']);
         $this->assertFalse($this->validator->validateModelConfiguration($this->post));
     }
 
-    /** @test */
+    #[Test]
     public function validate_model_configuration_returns_false_for_invalid_rejection_reasons()
     {
         config(['approvals.models.'.get_class($this->post).'.rejection_reasons' => 'not-an-array']);
         $this->assertFalse($this->validator->validateModelConfiguration($this->post));
     }
 
-    /** @test */
+    #[Test]
     public function it_validates_model_configuration_with_invalid_rejection_reasons()
     {
         config(['approvals.models' => [
@@ -90,7 +91,7 @@ class ApprovalValidatorTest extends TestCase
         $this->assertFalse($result);
     }
 
-    /** @test */
+    #[Test]
     public function it_validates_model_configuration_with_valid_config()
     {
         config([
@@ -105,7 +106,7 @@ class ApprovalValidatorTest extends TestCase
         $this->assertTrue($this->validator->validateModelConfiguration($post));
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_false_for_invalid_rejection_reason_configuration_format()
     {
         Config::set('approvals.models.'.Post::class, [
@@ -119,7 +120,7 @@ class ApprovalValidatorTest extends TestCase
         $this->assertFalse($this->validator->validateModelConfiguration($post));
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_false_for_invalid_mode_configuration()
     {
         Config::set('approvals.models.'.Post::class, ['mode' => 'invalid_mode']);
@@ -127,7 +128,7 @@ class ApprovalValidatorTest extends TestCase
         $this->assertFalse($this->validator->validateModelConfiguration($post));
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_false_for_non_string_rejection_reasons()
     {
         Config::set('approvals.models.'.Post::class, ['rejection_reasons' => [123, null]]);
@@ -135,7 +136,7 @@ class ApprovalValidatorTest extends TestCase
         $this->assertFalse($this->validator->validateModelConfiguration($post));
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_false_for_non_boolean_allow_custom_reasons()
     {
         Config::set('approvals.models.'.Post::class, ['allow_custom_reasons' => 'not-a-boolean']);

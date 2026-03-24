@@ -58,10 +58,6 @@ class ApprovalEventDispatcher
 
     protected function eventsEnabled(ApprovableInterface $model): bool
     {
-        if (method_exists($model, 'getApprovalConfig')) {
-            return $model->getApprovalConfig('events_enabled', true);
-        }
-
-        return config('approvals.default.events_enabled', true);
+        return $model->getApprovalConfig('events_enabled', true);
     }
 }

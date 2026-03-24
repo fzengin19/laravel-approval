@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
+use LaravelApproval\Exceptions\ApprovalException;
+use LaravelApproval\Exceptions\UnauthorizedApprovalException;
 use LaravelApproval\Enums\ApprovalStatus;
 use LaravelApproval\Events\ModelApproved;
 use LaravelApproval\Events\ModelApproving;
@@ -132,4 +134,47 @@ it('uses model-specific config for events', function () {
 
     Event::assertNothingDispatched();
     expect($this->post->isApproved())->toBeTrue();
+});
+
+it('fails closed when an explicit approval actor does not exist', function () {
+    $this->expectException(UnauthorizedApprovalException::class);
+
+    $this->post->approve(999999);
+});
+
+it('updates the latest approval record in upsert mode when approval history already exists', function () {
+    config(['approvals.default.mode' => 'insert']);
+
+    $this->post->setPending($this->user->id);
+    $this->post->approve($this->anotherUser->id);
+
+    $latestApprovalId = $this->post->latestApproval()->firstOrFail()->id;
+
+    config(['approvals.default.mode' => 'upsert']);
+
+    $this->post->reject($this->user->id, 'spam', 'Re-reviewed');
+
+    expect($this->post->approvals()->count())->toBe(2);
+    expect($this->post->latestApproval->id)->toBe($latestApprovalId);
+    expect($this->post->isRejected())->toBeTrue();
+});
+
+it('refreshes the cached latest approval relation after approving', function () {
+    $this->post->setPending($this->user->id);
+    $this->post->load('latestApproval');
+
+    expect($this->post->isPending())->toBeTrue();
+
+    $this->post->approve($this->anotherUser->id);
+
+    expect($this->post->isApproved())->toBeTrue();
+    expect($this->post->latestApproval->status)->toBe(ApprovalStatus::APPROVED);
+});
+
+it('rejects unknown reasons when the normalized reason is not configured', function () {
+    config(['approvals.default.rejection_reasons' => ['spam' => 'Spam']]);
+
+    $this->expectException(ApprovalException::class);
+
+    $this->post->reject($this->user->id, 'custom_reason', 'Needs explanation');
 });

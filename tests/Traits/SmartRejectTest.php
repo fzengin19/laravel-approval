@@ -1,6 +1,7 @@
 <?php
 
 use Tests\Models\Post;
+use Tests\Models\User;
 
 beforeEach(function () {
     // Set up rejection reasons configuration for testing
@@ -13,6 +14,8 @@ beforeEach(function () {
     ]]);
     config(['approvals.default.allow_custom_reasons' => false]);
 
+    $this->user = User::factory()->create();
+
     $this->post = Post::create([
         'title' => 'Test Post',
         'content' => 'Test Content',
@@ -20,7 +23,7 @@ beforeEach(function () {
 });
 
 it('uses predefined reason when reason is a config key', function () {
-    $this->post->reject(1, 'spam', 'Additional details');
+    $this->post->reject($this->user->id, 'spam', 'Additional details');
 
     expect($this->post->isRejected())->toBeTrue();
     $this->assertDatabaseHas('approvals', [
@@ -30,7 +33,7 @@ it('uses predefined reason when reason is a config key', function () {
 });
 
 it('uses other as reason when reason is not a config key', function () {
-    $this->post->reject(1, 'Custom rejection reason', 'Additional details');
+    $this->post->reject($this->user->id, 'Custom rejection reason', 'Additional details');
 
     expect($this->post->isRejected())->toBeTrue();
     $this->assertDatabaseHas('approvals', [
@@ -40,7 +43,7 @@ it('uses other as reason when reason is not a config key', function () {
 });
 
 it('handles custom reason without additional comment', function () {
-    $this->post->reject(1, 'Custom rejection reason');
+    $this->post->reject($this->user->id, 'Custom rejection reason');
 
     expect($this->post->isRejected())->toBeTrue();
     $this->assertDatabaseHas('approvals', [
@@ -50,7 +53,7 @@ it('handles custom reason without additional comment', function () {
 });
 
 it('handles null reason', function () {
-    $this->post->reject(1, null, 'Only comment');
+    $this->post->reject($this->user->id, null, 'Only comment');
 
     expect($this->post->isRejected())->toBeTrue();
     $this->assertDatabaseHas('approvals', [
@@ -63,7 +66,7 @@ it('handles all predefined reasons correctly', function () {
     $predefinedReasons = ['inappropriate_content', 'spam', 'duplicate', 'incomplete', 'other'];
 
     foreach ($predefinedReasons as $reason) {
-        $this->post->reject(1, $reason, 'Test comment');
+        $this->post->reject($this->user->id, $reason, 'Test comment');
 
         expect($this->post->isRejected())->toBeTrue();
         $this->assertDatabaseHas('approvals', [
@@ -79,7 +82,7 @@ it('handles all predefined reasons correctly', function () {
 it('works in upsert mode', function () {
     config(['approvals.default.mode' => 'upsert']);
 
-    $this->post->reject(1, 'spam', 'Test comment');
+    $this->post->reject($this->user->id, 'spam', 'Test comment');
 
     expect($this->post->isRejected())->toBeTrue();
     expect($this->post->approvals()->count())->toBe(1);
@@ -92,7 +95,7 @@ it('works in upsert mode', function () {
 it('works in insert mode', function () {
     config(['approvals.default.mode' => 'insert']);
 
-    $this->post->reject(1, 'spam', 'Test comment');
+    $this->post->reject($this->user->id, 'spam', 'Test comment');
 
     expect($this->post->isRejected())->toBeTrue();
     expect($this->post->approvals()->count())->toBe(1);
@@ -104,7 +107,7 @@ it('works in insert mode', function () {
 
 it('handles case sensitivity correctly', function () {
     // Test that exact key matching is case-sensitive
-    $this->post->reject(1, 'SPAM', 'Test comment');
+    $this->post->reject($this->user->id, 'SPAM', 'Test comment');
 
     expect($this->post->isRejected())->toBeTrue();
     $this->assertDatabaseHas('approvals', [
@@ -114,7 +117,7 @@ it('handles case sensitivity correctly', function () {
 });
 
 it('handles empty string reason', function () {
-    $this->post->reject(1, '', 'Test comment');
+    $this->post->reject($this->user->id, '', 'Test comment');
 
     expect($this->post->isRejected())->toBeTrue();
     $this->assertDatabaseHas('approvals', [

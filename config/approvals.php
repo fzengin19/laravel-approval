@@ -42,38 +42,38 @@ return [
         // - 'upsert': Updates the existing record for the model. Keeps only the
         //   latest status.
         'mode' => 'insert',
-        'auto_pending_on_create' => false,     // Auto pending when model is created
-        'show_only_approved_by_default' => false, // Is global scope active?
-        'auto_scope' => true,                  // Automatically add global scope
+        'auto_pending_on_create' => false,     // Automatically create a pending approval on model creation
+        'show_only_approved_by_default' => false, // When the global scope is registered, show only approved records by default
+        'auto_scope' => true,                  // Global master switch for registering the approval scope on approvable models
 
         // Event Settings
         'events_enabled' => true,              // Enable event system
         'events_logging' => true,              // Log events
         'events_webhooks_enabled' => false,    // Enable webhooks
         'events_webhooks_endpoints' => [],     // Webhook endpoints
-        'events_custom_actions' => [           // Custom event actions
+        'events_custom_actions' => [           // Invokable class strings resolved through the container
             'model_approved' => [
-                // Example: function($event) { /* custom logic */ }
+                // Example: \App\ApprovalActions\HandleModelApproved::class
             ],
             'model_rejected' => [
-                // Example: function($event) { /* custom logic */ }
+                // Example: \App\ApprovalActions\HandleModelRejected::class
             ],
             'model_pending' => [
-                // Example: function($event) { /* custom logic */ }
+                // Example: \App\ApprovalActions\HandleModelPending::class
             ],
             'model_approving' => [
-                // Example: function($event) { /* custom logic */ }
+                // Example: \App\ApprovalActions\HandleModelApproving::class
             ],
             'model_rejecting' => [
-                // Example: function($event) { /* custom logic */ }
+                // Example: \App\ApprovalActions\HandleModelRejecting::class
             ],
             'model_setting_pending' => [
-                // Example: function($event) { /* custom logic */ }
+                // Example: \App\ApprovalActions\HandleModelSettingPending::class
             ],
         ],
 
         // Rejection Settings
-        'allow_custom_reasons' => false,       // Allow custom rejection reasons
+        'allow_custom_reasons' => false,       // Backward-compatibility flag; unknown reasons still normalize to `other`
         'rejection_reasons' => [
             'inappropriate_content' => 'Inappropriate Content',
             'spam' => 'Spam',
@@ -99,7 +99,7 @@ return [
         //     'show_only_approved_by_default' => true,
         //     'default_status_for_unaudited' => 'approved', // Example of overriding
         //     'events_enabled' => false,
-        //     'allow_custom_reasons' => true,
+        //     'allow_custom_reasons' => false, // Kept for backward compatibility
         //     'rejection_reasons' => [
         //         'inappropriate_content' => 'Inappropriate Content',
         //         'spam' => 'Spam',

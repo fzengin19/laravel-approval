@@ -5,6 +5,7 @@ namespace LaravelApproval\Tests\Facades;
 use LaravelApproval\Enums\ApprovalStatus;
 use LaravelApproval\Facades\Approval;
 use LaravelApproval\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Models\Post;
 use Tests\Models\User;
 
@@ -21,7 +22,7 @@ class ApprovalTest extends TestCase
         $this->user = User::factory()->create();
     }
 
-    /** @test */
+    #[Test]
     public function it_can_approve_a_model_through_facade()
     {
         Approval::approve($this->post, $this->user->id);
@@ -37,7 +38,7 @@ class ApprovalTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_reject_a_model_through_facade()
     {
         Approval::reject($this->post, $this->user->id, 'Invalid content', 'Content violates guidelines');
@@ -55,7 +56,7 @@ class ApprovalTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_set_pending_through_facade()
     {
         Approval::setPending($this->post, $this->user->id);
@@ -71,7 +72,7 @@ class ApprovalTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_get_statistics_for_a_model_class()
     {
         Approval::approve(Post::factory()->create(), $this->user->id);
@@ -86,7 +87,7 @@ class ApprovalTest extends TestCase
         $this->assertEquals(1, $statistics['rejected']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_get_all_statistics()
     {
         config(['approvals.models' => [Post::class => []]]);

@@ -3,11 +3,13 @@
 namespace LaravelApproval\Services;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use InvalidArgumentException;
 use LaravelApproval\Contracts\ApprovableInterface;
 use LaravelApproval\Contracts\StatisticsServiceInterface;
 use LaravelApproval\Enums\ApprovalStatus;
 use LaravelApproval\Models\Approval;
+use LaravelApproval\Scopes\ApprovableScope;
 
 class StatisticsService implements StatisticsServiceInterface
 {
@@ -16,10 +18,12 @@ class StatisticsService implements StatisticsServiceInterface
      */
     public function getStatistics(string $modelClass): array
     {
-        $total = $modelClass::count();
-        $approved = $modelClass::approved()->count();
-        $pending = $modelClass::pending()->count();
-        $rejected = $modelClass::rejected()->count();
+        $query = $this->newBaseQuery($modelClass);
+
+        $total = (clone $query)->count();
+        $approved = $this->countByStatus((clone $query), $modelClass, ApprovalStatus::APPROVED);
+        $pending = $this->countByStatus((clone $query), $modelClass, ApprovalStatus::PENDING);
+        $rejected = $this->countByStatus((clone $query), $modelClass, ApprovalStatus::REJECTED);
 
         return $this->formatStatisticsPayload($total, $approved, $pending, $rejected);
     }
@@ -76,13 +80,16 @@ class StatisticsService implements StatisticsServiceInterface
      */
     public function getDetailedStatistics(string $modelClass): array
     {
-        if ($modelClass::whereHas('approvals')->count() === 0) {
+        $query = $this->newBaseQuery($modelClass);
+
+        if ((clone $query)->whereHas('approvals')->count() === 0) {
             return [];
         }
 
         $basicStats = $this->getStatistics($modelClass);
 
-        $latestApprovals = $modelClass::with('latestApproval')
+        $latestApprovals = (clone $query)
+            ->with('latestApproval')
             ->whereHas('latestApproval')
             ->orderBy('created_at', 'desc')
             ->limit(10)
@@ -118,12 +125,12 @@ class StatisticsService implements StatisticsServiceInterface
             throw new InvalidArgumentException('Invalid date format provided.');
         }
 
-        $query = $modelClass::whereBetween('created_at', [$start, $end]);
+        $query = $this->newBaseQuery($modelClass)->whereBetween('created_at', [$start, $end]);
 
         $total = (clone $query)->count();
-        $approved = (clone $query)->approved()->count();
-        $pending = (clone $query)->pending()->count();
-        $rejected = (clone $query)->rejected()->count();
+        $approved = $this->countByStatus((clone $query), $modelClass, ApprovalStatus::APPROVED);
+        $pending = $this->countByStatus((clone $query), $modelClass, ApprovalStatus::PENDING);
+        $rejected = $this->countByStatus((clone $query), $modelClass, ApprovalStatus::REJECTED);
 
         return array_merge($this->formatStatisticsPayload($total, $approved, $pending, $rejected), [
             'date_range' => [
@@ -159,5 +166,36 @@ class StatisticsService implements StatisticsServiceInterface
         }
 
         return round(($value / $total) * 100, 2);
+    }
+
+    private function newBaseQuery(string $modelClass): Builder
+    {
+        return $modelClass::query()->withoutGlobalScope(ApprovableScope::class);
+    }
+
+    private function countByStatus(Builder $query, string $modelClass, ApprovalStatus $status): int
+    {
+        $unauditedStatus = $this->getUnauditedStatus($modelClass);
+
+        return $query->where(function (Builder $builder) use ($status, $unauditedStatus) {
+            $builder->whereHas('latestApproval', function (Builder $subQuery) use ($status) {
+                $subQuery->where('status', $status);
+            });
+
+            if ($unauditedStatus === $status->value) {
+                $builder->orWhereDoesntHave('approvals');
+            }
+        })->count();
+    }
+
+    private function getUnauditedStatus(string $modelClass): ?string
+    {
+        $model = new $modelClass;
+
+        if (! $model instanceof ApprovableInterface) {
+            return config('approvals.default.default_status_for_unaudited');
+        }
+
+        return $model->getApprovalConfig('default_status_for_unaudited');
     }
 }

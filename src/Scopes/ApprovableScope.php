@@ -23,6 +23,10 @@ class ApprovableScope implements Scope
      */
     public function apply(Builder $builder, Model $model)
     {
+        if (! method_exists($model, 'getApprovalConfig')) {
+            return;
+        }
+
         if ($this->shouldApplyScope($model)) {
             $unauditedStatus = $model->getApprovalConfig('default_status_for_unaudited');
 
@@ -57,8 +61,8 @@ class ApprovableScope implements Scope
      */
     protected function addWithUnapproved(Builder $builder)
     {
-        $builder->macro('withUnapproved', function (Builder $builder) {
-            return $builder->withoutGlobalScope($this);
+        $builder->macro('withUnapproved', function (Builder $builder): Builder {
+            return $builder->withoutGlobalScope(ApprovableScope::class);
         });
     }
 
@@ -69,8 +73,8 @@ class ApprovableScope implements Scope
      */
     protected function addOnlyUnapproved(Builder $builder)
     {
-        $builder->macro('onlyUnapproved', function (Builder $builder) {
-            return $builder->withoutGlobalScope($this)->where(function (Builder $query) {
+        $builder->macro('onlyUnapproved', function (Builder $builder): Builder {
+            return $builder->withoutGlobalScope(ApprovableScope::class)->where(function (Builder $query) {
                 $query->whereHas('latestApproval', function (Builder $query) {
                     $query->where('status', '!=', ApprovalStatus::APPROVED->value);
                 })->orWhereDoesntHave('latestApproval');
@@ -85,8 +89,8 @@ class ApprovableScope implements Scope
      */
     protected function addOnlyApproved(Builder $builder)
     {
-        $builder->macro('onlyApproved', function (Builder $builder) {
-            return $builder->withUnapproved()->whereHas('latestApproval', function (Builder $query) {
+        $builder->macro('onlyApproved', function (Builder $builder): Builder {
+            return $builder->withoutGlobalScope(ApprovableScope::class)->whereHas('latestApproval', function (Builder $query) {
                 $query->where('status', ApprovalStatus::APPROVED);
             });
         });

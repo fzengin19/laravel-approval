@@ -3,9 +3,11 @@
 use LaravelApproval\Contracts\ApprovalValidatorInterface;
 use LaravelApproval\Exceptions\UnauthorizedApprovalException;
 use Tests\Models\Post;
+use Tests\Models\User;
 
 beforeEach(function () {
     $this->post = Post::create(['title' => 'Test', 'content' => 'Test']);
+    $this->user = User::factory()->create();
 });
 
 test('setPending throws exception when cannot set pending', function () {
@@ -15,7 +17,7 @@ test('setPending throws exception when cannot set pending', function () {
 
     app()->instance(ApprovalValidatorInterface::class, $mockValidator);
 
-    expect(fn () => $this->post->setPending(1))->toThrow(UnauthorizedApprovalException::class);
+    expect(fn () => $this->post->setPending($this->user->id))->toThrow(UnauthorizedApprovalException::class);
 });
 
 test('setPending throws exception when validation fails', function () {
@@ -25,7 +27,7 @@ test('setPending throws exception when validation fails', function () {
 
     app()->instance(ApprovalValidatorInterface::class, $mockValidator);
 
-    expect(fn () => $this->post->setPending(1))->toThrow(UnauthorizedApprovalException::class);
+    expect(fn () => $this->post->setPending($this->user->id))->toThrow(UnauthorizedApprovalException::class);
 });
 
 test('approve throws exception when cannot approve', function () {
@@ -35,7 +37,7 @@ test('approve throws exception when cannot approve', function () {
 
     app()->instance(ApprovalValidatorInterface::class, $mockValidator);
 
-    expect(fn () => $this->post->approve(1))->toThrow(UnauthorizedApprovalException::class);
+    expect(fn () => $this->post->approve($this->user->id))->toThrow(UnauthorizedApprovalException::class);
 });
 
 test('approve throws exception when validation fails', function () {
@@ -45,7 +47,7 @@ test('approve throws exception when validation fails', function () {
 
     app()->instance(ApprovalValidatorInterface::class, $mockValidator);
 
-    expect(fn () => $this->post->approve(1))->toThrow(UnauthorizedApprovalException::class);
+    expect(fn () => $this->post->approve($this->user->id))->toThrow(UnauthorizedApprovalException::class);
 });
 
 test('reject throws exception when cannot reject', function () {
@@ -55,7 +57,7 @@ test('reject throws exception when cannot reject', function () {
 
     app()->instance(ApprovalValidatorInterface::class, $mockValidator);
 
-    expect(fn () => $this->post->reject(1, 'spam', 'Test'))->toThrow(UnauthorizedApprovalException::class);
+    expect(fn () => $this->post->reject($this->user->id, 'spam', 'Test'))->toThrow(UnauthorizedApprovalException::class);
 });
 
 test('reject throws exception when validation fails', function () {
@@ -65,5 +67,5 @@ test('reject throws exception when validation fails', function () {
 
     app()->instance(ApprovalValidatorInterface::class, $mockValidator);
 
-    expect(fn () => $this->post->reject(1, 'spam', 'Test'))->toThrow(UnauthorizedApprovalException::class);
+    expect(fn () => $this->post->reject($this->user->id, 'spam', 'Test'))->toThrow(UnauthorizedApprovalException::class);
 });

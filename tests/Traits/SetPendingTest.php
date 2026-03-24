@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Auth;
 use LaravelApproval\Enums\ApprovalStatus;
+use LaravelApproval\Exceptions\UnauthorizedApprovalException;
 use Tests\Models\Post;
 use Tests\Models\User;
 
@@ -68,4 +69,10 @@ it('uses authenticated user id when caused_by is null', function () {
         'caused_by_id' => $this->user->id,
         'caused_by_type' => $this->user->getMorphClass(),
     ]);
+});
+
+it('fails closed when an explicit pending actor does not exist', function () {
+    $this->expectException(UnauthorizedApprovalException::class);
+
+    $this->post->setPending(999999);
 });

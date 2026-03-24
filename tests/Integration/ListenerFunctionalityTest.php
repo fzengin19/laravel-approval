@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 use Tests\Models\Post;
+use Tests\Models\User;
 
 beforeEach(function () {
     $this->logPath = storage_path('logs/test.log');
@@ -14,6 +15,7 @@ beforeEach(function () {
         'path' => $this->logPath,
     ]);
     Config::set('approvals.default.events_logging_channel', 'test_channel');
+    $this->user = User::factory()->create();
 });
 
 afterEach(function () {
@@ -26,7 +28,7 @@ test('it logs events when logging is enabled', function () {
     Config::set('approvals.default.events_logging', true);
 
     $post = Post::create(['title' => 'Test', 'content' => 'Test']);
-    $post->approve(1);
+    $post->approve($this->user->id);
 
     $logContent = File::get($this->logPath);
     expect($logContent)->toContain('Approval event: model_approving');
@@ -37,7 +39,7 @@ test('it does not log events when logging is disabled', function () {
     Config::set('approvals.default.events_logging', false);
 
     $post = Post::create(['title' => 'Test', 'content' => 'Test']);
-    $post->approve(1);
+    $post->approve($this->user->id);
 
     expect(File::exists($this->logPath))->toBeFalse();
 });
@@ -54,7 +56,7 @@ test('it executes custom actions when configured', function () {
     ]);
 
     $post = Post::create(['title' => 'Test', 'content' => 'Test']);
-    $post->approve(1);
+    $post->approve($this->user->id);
 
     expect($customActionWasCalled)->toBeTrue();
 });
@@ -65,7 +67,7 @@ test('it does not execute custom actions when not configured', function () {
     Config::set('approvals.default.events_custom_actions', []);
 
     $post = Post::create(['title' => 'Test', 'content' => 'Test']);
-    $post->approve(1);
+    $post->approve($this->user->id);
 
     expect($customActionWasCalled)->toBeFalse();
 });

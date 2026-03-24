@@ -6,6 +6,7 @@ use Illuminate\Support\Carbon;
 use LaravelApproval\Enums\ApprovalStatus;
 use LaravelApproval\Models\Approval;
 use LaravelApproval\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Models\Post;
 use Tests\Models\User;
 
@@ -22,7 +23,7 @@ class ApprovalTest extends TestCase
         $this->user = User::factory()->create();
     }
 
-    /** @test */
+    #[Test]
     public function it_can_be_created_with_valid_data()
     {
         $approval = new Approval;
@@ -45,7 +46,7 @@ class ApprovalTest extends TestCase
         $this->assertEquals(ApprovalStatus::PENDING, $approval->status);
     }
 
-    /** @test */
+    #[Test]
     public function it_correctly_casts_attributes()
     {
         $approval = Approval::create([
@@ -60,7 +61,7 @@ class ApprovalTest extends TestCase
         $this->assertInstanceOf(Carbon::class, $approval->responded_at);
     }
 
-    /** @test */
+    #[Test]
     public function it_protects_against_mass_assignment()
     {
         $approval = new Approval;
@@ -71,7 +72,7 @@ class ApprovalTest extends TestCase
         $this->assertFalse($approval->isFillable('id'));
     }
 
-    /** @test */
+    #[Test]
     public function it_correctly_resolves_the_approvable_relationship()
     {
         $approval = Approval::create([
@@ -84,7 +85,7 @@ class ApprovalTest extends TestCase
         $this->assertTrue($this->post->is($approval->approvable));
     }
 
-    /** @test */
+    #[Test]
     public function it_correctly_resolves_the_causer_relationship()
     {
         $approval = Approval::factory()->create([
@@ -98,7 +99,7 @@ class ApprovalTest extends TestCase
         $this->assertTrue($this->user->is($approval->causer));
     }
 
-    /** @test */
+    #[Test]
     public function it_can_be_scoped_by_status()
     {
         Approval::factory()->count(2)->create([

@@ -6,6 +6,7 @@ use LaravelApproval\Core\ApprovalRepository;
 use LaravelApproval\Enums\ApprovalStatus;
 use LaravelApproval\Models\Approval;
 use LaravelApproval\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\Models\Post;
 use Tests\Models\User;
 
@@ -25,7 +26,7 @@ class ApprovalRepositoryTest extends TestCase
         $this->user = User::factory()->create();
     }
 
-    /** @test */
+    #[Test]
     public function it_can_create_and_update_or_create_approvals()
     {
         $data = [
@@ -46,7 +47,7 @@ class ApprovalRepositoryTest extends TestCase
         $this->assertEquals(ApprovalStatus::APPROVED, $updated->status);
     }
 
-    /** @test */
+    #[Test]
     public function it_gets_latest_for_model()
     {
         $this->assertNull($this->repo->getLatestForModel($this->post));

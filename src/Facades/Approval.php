@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void setPending(\LaravelApproval\Contracts\ApprovableInterface $model, ?int $userId = null, ?string $comment = null)
  * @method static array getStatistics(string $modelClass)
  * @method static array getAllStatistics()
- * @method static array getModelStatistics(\LaravelApproval\Contracts\ApprovableInterface $model)
+ * @method static array getModelStatistics(\LaravelApproval\Contracts\ApprovableInterface $model) Get class-level statistics for the given model instance
  * @method static float getApprovalPercentage(string $modelClass)
  * @method static float getRejectionPercentage(string $modelClass)
  * @method static float getPendingPercentage(string $modelClass)

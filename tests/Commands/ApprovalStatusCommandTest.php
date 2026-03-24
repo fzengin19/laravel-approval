@@ -1,19 +1,22 @@
 <?php
 
 use Tests\Models\Post;
+use Tests\Models\User;
 
 beforeEach(function () {
+    $this->user = User::factory()->create();
+
     // Create approved post
     $approvedPost = Post::create(['title' => 'Approved', 'content' => 'Content']);
-    $approvedPost->approve(1);
+    $approvedPost->approve($this->user->id);
 
     // Create pending post
     $pendingPost = Post::create(['title' => 'Pending', 'content' => 'Content']);
-    $pendingPost->setPending(1);
+    $pendingPost->setPending($this->user->id);
 
     // Reddedilmiş post oluştur
     $rejectedPost = Post::create(['title' => 'Rejected', 'content' => 'Content']);
-    $rejectedPost->reject(1, 'Invalid');
+    $rejectedPost->reject($this->user->id, 'Invalid');
 });
 
 it('can show statistics for all models', function () {
@@ -44,5 +47,19 @@ it('shows message when no models are configured', function () {
 
     $this->artisan('approval:status')
         ->expectsOutputToContain('No models configured for approval statistics.')
+        ->assertExitCode(0);
+});
+
+it('shows unscoped statistics when approved-only visibility is enabled', function () {
+    config([
+        'approvals.models' => [Post::class => []],
+        'approvals.default.show_only_approved_by_default' => true,
+    ]);
+
+    $this->artisan('approval:status')
+        ->expectsTable(
+            ['Model', 'Total', 'Approved', 'Pending', 'Rejected', 'Approved %'],
+            [[Post::class, 3, 1, 1, 1, '33.33%']]
+        )
         ->assertExitCode(0);
 });

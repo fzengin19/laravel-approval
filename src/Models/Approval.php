@@ -9,21 +9,26 @@ use LaravelApproval\Database\Factories\ApprovalFactory;
 use LaravelApproval\Enums\ApprovalStatus;
 
 /**
+ * @phpstan-consistent-constructor
+ *
  * @property ApprovalStatus $status
+ * @property int|null $caused_by_id
+ * @property string|null $caused_by_type
  * @property \Illuminate\Support\Carbon|null $responded_at
  * @property-read Model $approvable
  * @property-read Model|null $causer
  */
 class Approval extends Model
 {
+    /** @use HasFactory<ApprovalFactory> */
     use HasFactory;
 
     /**
      * Create a new factory instance for the model.
      *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory<static>
+     * @return ApprovalFactory
      */
-    protected static function newFactory()
+    protected static function newFactory(): ApprovalFactory
     {
         return ApprovalFactory::new();
     }
@@ -31,7 +36,7 @@ class Approval extends Model
     /**
      * The attributes that are mass assignable.
      *
-     * @var array<int, string>
+     * @var list<string>
      */
     protected $fillable = [
         'approvable_type',

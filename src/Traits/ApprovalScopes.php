@@ -39,15 +39,17 @@ trait ApprovalScopes
     {
         $unauditedStatus = $this->getApprovalConfig('default_status_for_unaudited');
 
-        return $query->where(function (Builder $q) use ($status, $unauditedStatus) {
-            $q->whereHas('latestApproval', function (Builder $subQuery) use ($status) {
-                $subQuery->where('status', $status);
-            });
+        return $query
+            ->withoutGlobalScope(ApprovableScope::class)
+            ->where(function (Builder $q) use ($status, $unauditedStatus) {
+                $q->whereHas('latestApproval', function (Builder $subQuery) use ($status) {
+                    $subQuery->where('status', $status);
+                });
 
-            if ($unauditedStatus === $status->value) {
-                $q->orWhereDoesntHave('approvals');
-            }
-        });
+                if ($unauditedStatus === $status->value) {
+                    $q->orWhereDoesntHave('approvals');
+                }
+            });
     }
 
     /**

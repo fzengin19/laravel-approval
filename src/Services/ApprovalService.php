@@ -52,7 +52,7 @@ class ApprovalService
     }
 
     /**
-     * Get approval statistics for a specific model instance.
+     * Get approval statistics for the given model's class.
      */
     public function getModelStatistics(ApprovableInterface $model): array
     {
