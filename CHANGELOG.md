@@ -4,6 +4,8 @@ All notable changes to `fzengin19/laravel-approval` will be documented in this f
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-03-25
+
 ### Fixed
 - Local `approved`, `pending`, and `rejected` scopes now return correct results even when approved-only visibility is enabled.
 - Statistics and the `approval:status` command now ignore the approved-only visibility scope so totals stay authoritative.

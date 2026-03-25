@@ -759,4 +759,4 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## 📄 License
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.  bunu incele ve türkçe olarak bana anlat değerlendir
+This package is licensed under the MIT License. See [LICENSE.md](LICENSE.md) for details.
